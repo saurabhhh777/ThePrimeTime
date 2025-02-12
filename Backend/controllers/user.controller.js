@@ -2,12 +2,12 @@ import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
 import dotenv from "dotenv";
 import userModel from "../models/user.model.js";
-dotenv.config({});
+dotenv.config();
 
 
 //user signup controller 
-export const signup = async (req, res) => {
-  const { fullname, email, password } = req.body;
+export const Signup = async (req, res) => {
+  const { username, email, password } = req.body;
 
   const isUser = await userModel.findOne({ email });
 
@@ -60,7 +60,7 @@ export const signup = async (req, res) => {
 
 
 //signin controller 
-export const signin = async (req, res) => {
+export const Signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -107,7 +107,7 @@ export const signin = async (req, res) => {
 
 
 //logout controller 
-export const logout = (req,res)=>{
+export const Logout = (req,res)=>{
     try {
         return res.status(200).cookie("token","",{
             maxAge:0,
@@ -129,4 +129,17 @@ export const logout = (req,res)=>{
 
 
 
+export const Dashboard = (req,res)=>{
+  try {
+    
 
+
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message:"Server error, please try again later",
+      success:"false",
+    })
+  }
+}
