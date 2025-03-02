@@ -4,8 +4,8 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 const app = express();
 import userRoute from "./routes/user.route.js";
-import leaderRoute from "./routes/leaderboard.route.js";
-import { connectDB } from "./utils/db.js";
+import leaderRoute from "./routes/leader.route.js";
+import { connectDB } from "./config/db.js";
 dotenv.config();
 
 
