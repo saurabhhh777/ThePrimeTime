@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 const app = express();
 import userRoute from "./routes/user.route.js";
 import leaderRoute from "./routes/leader.route.js";
+import accountRoute from "./routes/account.route.js";
+import notificationsRoute from "./routes/notifications.route.js";
+import preferencesRoute from "./routes/preferences.route.js";
+import billingRoute from "./routes/billing.route.js";
 import { connectDB } from "./config/db.js";
 dotenv.config();
 
@@ -22,8 +26,12 @@ app.use(cookieParser());
 
 
 
-app.use("/api/v1/user",userRoute);
-app.use("/api/v1/lader",leaderRoute);
+app.use("/api/v1/user", userRoute);
+app.use("/api/v1/leader", leaderRoute);
+app.use("/api/v1/account", accountRoute);
+app.use("/api/v1/notifications", notificationsRoute);
+app.use("/api/v1/preferences", preferencesRoute);
+app.use("/api/v1/billing", billingRoute);
 
 
 

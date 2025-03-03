@@ -29,8 +29,8 @@ const billingSchema = new mongoose.Schema({
     payment_method:{
         type:String,
         required:true,
-        enum: ["card", "upi", "crypto"],
-        default:"credit_card",
+        enum: ["card", "upi", "crypto","none"],
+        default:"none",
     },
     transaction_id:{
         type:String,
@@ -46,9 +46,15 @@ const billingSchema = new mongoose.Schema({
     },
     payment_status:{
         type:String,
-        enum:["success","failed","pending"],
+        enum:["success","failed","pending",],
         default:"pending",
     },
+    owner_wallet_address:{
+        type:String,
+        required:true,
+        default:"BD1bpHXG2Q2zAgRzF8uzx5a77HFybicR6d6YZpFFwj8g",
+
+    }
 
 
 });

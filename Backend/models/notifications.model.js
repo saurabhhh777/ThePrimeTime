@@ -14,7 +14,7 @@ const notificationsSchema = new mongoose.Schema({
             default:"weekly",
         },
         report_to_week:{
-            type:Number,
+            type:String,
             enum:["sun","mon","tue","wed","thu","fri","sat"],
             default:"mon",
             required:true,

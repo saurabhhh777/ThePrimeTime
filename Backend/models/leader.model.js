@@ -5,27 +5,24 @@ const leaderSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         unique:true,
+        required:true,
     },
     user_rank:{
         type:Number,
         required:true,
     },
     user_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
+        type:String,
         required:true,
     },
     hours_coded:{
-        type:String,
-        required:true,
+        type:Number,
     },
     daily_avg:{
-        type:String,
-        required:true,
+        type:Number,
     },
     language_used:[{
         type:String,
-        required:true,
     }],
     country:{
         type:String,

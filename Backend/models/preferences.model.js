@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import {moment} from "moment-timezone";
+import moment from "moment-timezone";
+
 
 const Validtimezones = moment.tz.names();
 
@@ -15,6 +16,7 @@ const preferencesSchema = new mongoose.Schema({
     Theme:{
         type:String,
         enum:["light","dark"],
+        default:"light",
         required:true,
     },
     defaulRange:{
