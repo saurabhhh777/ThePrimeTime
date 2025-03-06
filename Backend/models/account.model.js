@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { createApiKey } from "../utils/ApiKey.js";
 const accountSchema = new mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
@@ -9,6 +9,7 @@ const accountSchema = new mongoose.Schema({
     secret_api_key:{
         type:String,
         required:true,
+        default:createApiKey(),
     },
     emails:{
         primary_email:{
@@ -22,6 +23,15 @@ const accountSchema = new mongoose.Schema({
         github_user_id:{
             type:String,
         }
+    },
+    otp_logic:{
+        otp:{
+            type:String,
+            default:null,
+        },
+        otp_create_At:{
+            type:String,
+        },
     },
     danger_zone:{
         delete_account:{
