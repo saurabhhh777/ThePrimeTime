@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const ideStatsSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  ide_name:{type:String,required:true},
   total_hours_coded: { type: Number, default: 0 },
   yearly_hours: { type: Number, default: 0 },
   monthly_hours: { type: Number, default: 0 },

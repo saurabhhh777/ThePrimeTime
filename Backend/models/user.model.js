@@ -30,6 +30,26 @@ const userSchema = new mongoose.Schema({
     billing: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Billing", // Reference to Billing Schema
+    },
+    dashboard: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Dashboard", // Reference to Dashboard Schema
+    },
+    ideStats: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "IdeStats", // Reference to IdeStats Schema
+    },
+    lang: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lang", // Reference to Lang Schema
+    },
+    leader: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Leader", // Reference to Leader Schema
+    },
+    projects: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Project", // Reference to Projects Schema
     }
 }, { timestamps: true });
 

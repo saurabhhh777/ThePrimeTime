@@ -18,6 +18,7 @@ export const createIdeStats = async (req, res) => {
   try {
     const ideStats = await ideStatsModel.create({
       user: req.user._id,
+      ide_name: req.body.ide_name,
       total_hours_coded: req.body.total_hours_coded || 0,
       yearly_hours: req.body.yearly_hours || 0,
       monthly_hours: req.body.monthly_hours || 0,
@@ -36,7 +37,15 @@ export const updateIdeStats = async (req, res) => {
   try {
     const ideStats = await ideStatsModel.findOneAndUpdate(
       { user: req.user._id },
-      req.body,
+      {
+        ide_name: req.body.ide_name,
+        total_hours_coded: req.body.total_hours_coded,
+        yearly_hours: req.body.yearly_hours,
+        monthly_hours: req.body.monthly_hours,
+        weekly_hours: req.body.weekly_hours,
+        daily_hours: req.body.daily_hours,
+        daily_logs: req.body.daily_logs
+      },
       { new: true }
     );
 
