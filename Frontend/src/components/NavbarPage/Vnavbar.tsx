@@ -32,9 +32,7 @@ const Vnavbar: React.FC<VnavbarProps> = ({ className }) => {
             <h2>
                 <Link to="/invoice" className="text-gray-300 hover:text-white transition-colors">Invoice</Link>
             </h2>
-            <h2>
-                <Link to="/logout" className="text-gray-300 hover:text-white transition-colors">Logout</Link>
-            </h2>
+            
         </div>
         <div className="space-y-4">
             <h2>
