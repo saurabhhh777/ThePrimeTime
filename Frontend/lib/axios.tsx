@@ -2,7 +2,7 @@ import axios from 'axios';
 
 declare global {
     interface ImportMetaEnv {
-        VITE_FRONTEND_URL: string;
+        VITE_BACKEND_URL: string;
     }
     interface ImportMeta {
         readonly env: ImportMetaEnv
@@ -10,7 +10,7 @@ declare global {
 }
 
 export const instance = axios.create({
-    baseURL: `${import.meta.env.VITE_FRONTEND_URL}`,
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}`,
     headers: {
         'Content-Type': 'application/json'
     }
