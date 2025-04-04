@@ -1,7 +1,8 @@
-import { userAuthStore } from "../../../store/userAuthStore.tsx";
+import { userAuthStore } from "../../store/userAuthStore.tsx";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import {MoveLeft} from "lucide-react";
+import toast,{ Toaster } from "react-hot-toast";
 
 // Define the form data type
 interface FormData {
@@ -25,18 +26,19 @@ const Signin = () => {
   const handleSignin = async () => {
     const success = await signin(formdata.email, formdata.password);
     if (success) {
-      toast.success("Login successful");
       navigate("/dashboard");
+      toast.success("Login successful");
     } else {
       toast.error("Login failed");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#e9ecda] to-[#c9ccba]">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b bg-[#2a3d4a]">
+      <Toaster/>
      
-      <div className="flex flex-col items-center justify-center p-8 bg-black bg-opacity-90 shadow-2xl rounded-xl w-96 space-y-6">
-        <h2 className="text-3xl font-bold text-white mb-6">Sign In</h2>
+      <div className="flex flex-col items-center justify-center p-8 bg-[#98a9bd] bg-opacity-90 shadow-2xl rounded-xl w-96 space-y-6">
+        <h2 className="text-3xl font-bold text-black mb-6">Sign In</h2>
         <input
           type="email"
           name="email"
@@ -57,9 +59,9 @@ const Signin = () => {
         >
           Sign In
         </button>
-        <p className="text-gray-400 text-sm">
+        <p className="text-black text-sm">
           Don't have an account?{" "}
-          <a href="/signup" className="text-blue-500 hover:text-blue-400">
+          <a href="/signup" className="text-[#283b49] hover:tex-[#283dkn  ]">
             Sign up
           </a>
         </p>

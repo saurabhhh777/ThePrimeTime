@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./components/pages/Home";
-import Signin from "./components/pages/Signin";
-import Signup from "./components/pages/Signup";
+import Home from "./pages/Home";
+import Signin from "./pages/Signin";
+import Signup from "./pages/Signup";
 import ErrorPage from "./components/ErrorPage/ErrorPage";
-import Dashboard from "./components/pages/Dashboard";
-import ApiDocs from "./components/pages/ApiDocs";
-import Faq from "./components/pages/Faq";
-import Leaderboard from "./components/pages/Leaderboard";
-import Reports from "./components/pages/Reports";
-import Profile from "./components/pages/Profile";
-import Invoice from "./components/pages/Invoice";
-import Projects from "./components/pages/Projects";
-import Blog from "./components/pages/Blog";
-import Settings from "./components/pages/Settings"; 
+import Dashboard from "./pages/Dashboard";
+import ApiDocs from "./pages/ApiDocs";
+import Faq from "./pages/Faq";
+import Leaderboard from "./pages/Leaderboard";
+import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
+import Invoice from "./pages/Invoice";
+import Projects from "./pages/Projects";
+import Blog from "./pages/Blog";
+import Settings from "./pages/Settings"; 
 
 
 const App = () => {

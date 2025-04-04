@@ -1,5 +1,5 @@
-import Hnavbar from "../NavbarPage/Hnavbar";
-import Vnavbar from "../NavbarPage/Vnavbar";
+import Hnavbar from "../components/NavbarPage/Hnavbar";
+import Vnavbar from "../components/NavbarPage/Vnavbar";
 
 const Dashboard = () => {
   return (

@@ -1,5 +1,5 @@
-import Vnavbar from "../NavbarPage/Vnavbar";
-import Hnavbar from "../NavbarPage/Hnavbar";
+import Vnavbar from "../components/NavbarPage/Vnavbar";
+import Hnavbar from "../components/NavbarPage/Hnavbar";
 
 const Projects = () => {
   return (
