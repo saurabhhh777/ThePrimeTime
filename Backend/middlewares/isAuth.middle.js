@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
+import userModel from "../models/user.model.js";
 
-export const isAuth = (req, res, next) => {
+export const isAuth = async(req, res, next) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1] || req.body.token;
+        const token = req.cookies.token;
+
+        console.log(token, "token from isAuth middleware");
 
         if (!token) {
             return res.status(401).json({
@@ -20,7 +23,7 @@ export const isAuth = (req, res, next) => {
             });
         }
 
-        req.user = decode;
+        req.user = await userModel.findById(decode.id).select("-password -__v -createdAt -updatedAt");
         next();
 
     } catch (error) {

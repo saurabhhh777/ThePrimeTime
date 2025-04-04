@@ -115,6 +115,9 @@ export const Signup = async (req, res) => {
       process.env.JWT_SECRET
     );
 
+    console.log(`${email}'s user token is :${token}`);
+    console.log(`User data is ${newUser}`);
+
     //setting the cookie to the browser for CRUD operations
     console.log("Signup successful, sending response...");
     return res
@@ -125,6 +128,7 @@ export const Signup = async (req, res) => {
       .json({
         message: "Signup Successfully",
         success: true,
+        user: newUser,
       });
   } catch (error) {
     console.error("Error in signup process:", error);

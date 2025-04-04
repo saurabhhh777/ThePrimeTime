@@ -1,6 +1,6 @@
-import { accountModel } from "../models/account.model.js";
-import { userModel } from "../models/user.model.js";
-import { getCurrentTime } from "./CurrentTime.js";
+import  accountModel  from "../models/account.model.js";
+import  userModel  from "../models/user.model.js";
+import { getCurrentTime } from "../utils/CurrentTime.js";
 
 //send otp to the user's email
 export const sendOTPToMail = async (req,res,next)=>{

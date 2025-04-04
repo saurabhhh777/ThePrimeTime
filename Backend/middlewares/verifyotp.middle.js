@@ -1,5 +1,5 @@
 import accountModel from "../models/account.model.js";
-import { sendOTPToMail } from "../utils/SendOTPToMail.js";
+// import { sendOTPToMail } from "../utils/SendOTPToMail.js";
 
 export const VerifyOTP = async (req,res,next)=>{
     try {
