@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { isAuth } from '../middlewares/isAuth.middle.js';
+import { hybridDB } from '../config/hybridDB.js';
 
 const prisma = new PrismaClient();
 
@@ -13,22 +14,34 @@ export const submitCodingStats = async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Create coding stats record
-        const codingStats = await prisma.codingStats.create({
-            data: {
-                userId,
-                timestamp: new Date(timestamp),
-                fileName,
-                filePath,
-                language,
-                folder,
-                duration,
-                linesChanged: linesChanged || 0,
-                charactersTyped: charactersTyped || 0
-            }
+        // Create coding stats record in both databases
+        const codingStatsData = {
+            userId,
+            timestamp: new Date(timestamp),
+            fileName,
+            filePath,
+            language,
+            folder,
+            duration,
+            linesChanged: linesChanged || 0,
+            charactersTyped: charactersTyped || 0
+        };
+
+        // Save to PostgreSQL (Prisma)
+        const postgresStats = await prisma.codingStats.create({
+            data: codingStatsData
         });
 
-        res.status(201).json({ success: true, data: codingStats });
+        // Save to MongoDB
+        const mongoStats = await hybridDB.saveToMongoDB('codingStats', codingStatsData);
+
+        res.status(201).json({ 
+            success: true, 
+            data: {
+                postgreSQL: postgresStats,
+                mongoDB: mongoStats
+            }
+        });
     } catch (error) {
         console.error('Error submitting coding stats:', error);
         res.status(500).json({ error: 'Internal server error' });

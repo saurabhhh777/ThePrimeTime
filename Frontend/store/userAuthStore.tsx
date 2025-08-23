@@ -30,8 +30,12 @@ export const userAuthStore = create<AuthStore>((set) => ({
     signup: async (username: string, email: string, password: string) => {
         try {
             const response = await instance.post("/api/v1/user/signup", { username, email, password });
-            set({ user: response.data, isAuthenticated: true, isLogin: true });
-            return true;
+            if (response.data.success && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                set({ user: response.data.user, isAuthenticated: true, isLogin: true });
+                return true;
+            }
+            return false;
         } catch (error) {
             console.error("Signup failed:", error);
             return false;
@@ -41,8 +45,12 @@ export const userAuthStore = create<AuthStore>((set) => ({
     signin: async (email: string, password: string) => {
         try {
             const response = await instance.post("/api/v1/user/signin", { email, password });
-            set({ user: response.data, isAuthenticated: true, isLogin: true });
-            return true;
+            if (response.data.success && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                set({ user: response.data.user, isAuthenticated: true, isLogin: true });
+                return true;
+            }
+            return false;
         } catch (error) {
             console.error("Login failed:", error);
             return false;

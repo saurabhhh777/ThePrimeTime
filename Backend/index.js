@@ -12,15 +12,17 @@ import billingRoute from "./routes/billing.route.js";
 import dashboardRoute from "./routes/dashboard.route.js";
 import gitStatsRoute from "./routes/gitstats.route.js";
 import ideStatsRoute from "./routes/idestats.route.js";
-import { connectDB } from "./config/db.js";
+import { hybridDB } from "./config/hybridDB.js";
 import blogsRoute from "./routes/blogs.route.js";
 import codingStatsRoute from "./routes/codingstats.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
+import projectsRoute from "./routes/projects.route.js";
+import reportsRoute from "./routes/reports.route.js";
 dotenv.config();
 
 
-//this is the function which i call for connecting with MongoDB (Database)
-connectDB();
+// Initialize hybrid database (MongoDB + PostgreSQL)
+hybridDB.initialize();
 
 
 app.use(express.json());
@@ -44,6 +46,8 @@ app.use("/api/v1/idestats", ideStatsRoute);
 app.use("/api/v1/blogs", blogsRoute);
 app.use("/api/v1/coding-stats", codingStatsRoute);
 app.use("/api/v1/subscription", subscriptionRoute);
+app.use("/api/v1/projects", projectsRoute);
+app.use("/api/v1/reports", reportsRoute);
 
 
 

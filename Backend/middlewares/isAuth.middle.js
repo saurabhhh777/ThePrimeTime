@@ -3,7 +3,12 @@ import userModel from "../models/user.model.js";
 
 export const isAuth = async(req, res, next) => {
     try {
-        const token = req.cookies.token;
+        // Check for token in cookies first, then in Authorization header
+        let token = req.cookies.token;
+        
+        if (!token && req.headers.authorization) {
+            token = req.headers.authorization.replace('Bearer ', '');
+        }
 
         console.log(token, "token from isAuth middleware");
 
@@ -16,6 +21,7 @@ export const isAuth = async(req, res, next) => {
 
         const decode = jwt.verify(token, process.env.JWT_SECRET);
 
+
         if (!decode) {
             return res.status(403).json({
                 message: "Invalid or expired token",
@@ -24,6 +30,7 @@ export const isAuth = async(req, res, next) => {
         }
 
         req.user = await userModel.findById(decode.id).select("-password -__v -createdAt -updatedAt");
+
         next();
 
     } catch (error) {
