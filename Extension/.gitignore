@@ -1,0 +1,11 @@
+node_modules
+out
+.env
+.vscode
+.vscode-test
+.vscode-test-web
+.vscode-test-web-web
+.vscode-test-web-web-web
+.vscode-test-web-web-web-web
+.vscode-test-web-web-web-web-web
+.vscode-test-web-web-web-web-web-web

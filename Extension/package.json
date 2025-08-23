@@ -1,0 +1,74 @@
+{
+  "name": "the-prime-time",
+  "displayName": "The Prime Time",
+  "description": "Track your coding time and productivity with detailed analytics",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "the-prime-time.setToken",
+        "title": "Set Prime Time Token",
+        "category": "Prime Time"
+      },
+      {
+        "command": "the-prime-time.showStatus",
+        "title": "Show Prime Time Status",
+        "category": "Prime Time"
+      },
+      {
+        "command": "the-prime-time.openDashboard",
+        "title": "Open Prime Time Dashboard",
+        "category": "Prime Time"
+      }
+    ],
+    "configuration": {
+      "title": "The Prime Time",
+      "properties": {
+        "thePrimeTime.apiToken": {
+          "type": "string",
+          "default": "",
+          "description": "Your Prime Time API token for tracking coding statistics"
+        },
+        "thePrimeTime.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Prime Time API server URL"
+        },
+        "thePrimeTime.trackingEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable coding time tracking"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
+    "eslint": "^8.26.0",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

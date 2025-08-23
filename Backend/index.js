@@ -14,6 +14,8 @@ import gitStatsRoute from "./routes/gitstats.route.js";
 import ideStatsRoute from "./routes/idestats.route.js";
 import { connectDB } from "./config/db.js";
 import blogsRoute from "./routes/blogs.route.js";
+import codingStatsRoute from "./routes/codingstats.route.js";
+import subscriptionRoute from "./routes/subscription.route.js";
 dotenv.config();
 
 
@@ -40,6 +42,8 @@ app.use("/api/v1/dashboard", dashboardRoute);
 app.use("/api/v1/gitstats", gitStatsRoute);
 app.use("/api/v1/idestats", ideStatsRoute);
 app.use("/api/v1/blogs", blogsRoute);
+app.use("/api/v1/coding-stats", codingStatsRoute);
+app.use("/api/v1/subscription", subscriptionRoute);
 
 
 

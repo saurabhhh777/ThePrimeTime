@@ -13,12 +13,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model Blog{
-  id Int @id @default(autoincrement())
-  title String
-  content String
-  userId String
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  apiToken  String   @unique @default(cuid())
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Subscription fields
+  subscriptionType SubscriptionType @default(FREE)
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  
+  // Relations
+  codingStats CodingStats[]
+  projects    Project[]
+  blogs       Blog[]
+  
+  @@map("users")
+}
 
+model CodingStats {
+  id             String   @id @default(cuid())
+  userId         String
+  timestamp      DateTime @default(now())
+  fileName       String
+  filePath       String
+  language       String
+  folder         String
+  duration       Int      // in milliseconds
+  linesChanged   Int      @default(0)
+  charactersTyped Int     @default(0)
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("coding_stats")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("projects")
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("blogs")
+}
+
+enum SubscriptionType {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
 }

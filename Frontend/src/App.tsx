@@ -12,7 +12,8 @@ import Profile from "./pages/Profile";
 import Invoice from "./pages/Invoice";
 import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
-import Settings from "./pages/Settings"; 
+import Settings from "./pages/Settings";
+import Subscription from "./pages/Subscription"; 
 
 
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/projects" element={<Projects />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/subscription" element={<Subscription />} />
         <Route path="/invoice" element={<Invoice />} />
       </Routes>
     </Router>
