@@ -1,264 +1,764 @@
 import { motion } from 'framer-motion';
-import { Clock, BarChart2, Code2, Globe, Github, Instagram, Linkedin, Twitter, Copyright, Zap, Target, TrendingUp } from 'lucide-react';
+import { ChevronDown, Star, MessageCircle, Zap, Target, TrendingUp, Code2, BarChart2, Clock, Globe, Github, Instagram, Linkedin, Twitter, Copyright } from 'lucide-react';
 
 const Home = () => {
-  const text = "The Prime Time".split("");
-
-  const container = {
-    hidden: { opacity: 0 },
-    visible: (i = 1) => ({
-      opacity: 1,
-      transition: { staggerChildren: 0.12, delayChildren: 0.04 * i },
-    }),
-  };
-
-  const child = {
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 200,
-      },
-    },
-    hidden: {
-      opacity: 0,
-      y: 20,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 200,
-      },
-    },
-  };
-
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden">
+      {/* Navigation Bar */}
+      <nav className="bg-gray-900 text-white px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="bg-white text-gray-900 px-3 py-1 rounded font-bold text-lg">
+              PrimeTime
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#products" className="hover:text-gray-300 transition-colors">Products</a>
+            <a href="#resources" className="hover:text-gray-300 transition-colors">Resources</a>
+            <a href="#integrations" className="hover:text-gray-300 transition-colors">Integrations</a>
+            <div className="flex items-center gap-1 hover:text-gray-300 transition-colors cursor-pointer">
+              <span>More</span>
+              <ChevronDown size={16} />
+            </div>
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-4">
+            <button className="px-4 py-2 hover:bg-gray-800 rounded transition-colors">
+              Log in
+            </button>
+            <button className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors">
+              Join the waitlist
+            </button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <div className="h-screen flex flex-col items-center justify-center relative">
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-b from-purple-900/30 via-slate-900/50 to-slate-900/80 z-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        />
-        <div className="z-10 text-center px-4">
-          <motion.h1 
-            className="text-6xl md:text-8xl lg:text-9xl font-black text-white flex overflow-hidden justify-center mb-8"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-            variants={container}
-            initial="hidden"
-            animate="visible"
-          >
-            {text.map((letter, index) => (
-              <motion.span
-                key={index}
-                variants={child}
-                className="inline-block hover:text-purple-400 transition-colors duration-300"
-                whileHover={{
-                  scale: 1.2,
-                  rotate: [0, 10, -10, 0],
-                  transition: {
-                    duration: 0.3
-                  }
-                }}
+      <div className="relative min-h-screen flex items-center px-6 py-12">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <motion.div 
+              className="relative z-10"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              {/* Floating Star */}
+              <motion.div 
+                className="absolute -top-4 -left-4 text-gray-800"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
               >
-                {letter}
-              </motion.span>
+                <Star size={24} fill="currentColor" />
+              </motion.div>
+
+              {/* Main Headline */}
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Complete AI{' '}
+                <span className="relative">
+                  <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text">
+                    Coding
+                  </span>
+                  <motion.div 
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full opacity-20"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </span>{' '}
+                Productivity Ecosystem
+              </h1>
+
+              {/* Description */}
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                We resolve 60-80% of your coding productivity issues via real-time tracking, analytics, and insights, 
+                reducing your development time by over 50%.
+              </p>
+
+              {/* CTA Button */}
+              <motion.button
+                className="px-8 py-4 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Join the waitlist
+              </motion.button>
+            </motion.div>
+
+            {/* Right Content - Browser Window Mockup */}
+            <motion.div 
+              className="relative"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              {/* Browser Window */}
+              <div className="bg-white rounded-lg shadow-2xl overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-300">
+                {/* Browser Header */}
+                <div className="bg-gray-100 px-4 py-3 flex items-center gap-2">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  </div>
+                  <div className="flex-1 bg-white rounded px-3 py-1 text-sm text-gray-600 ml-4">
+                    primetime.dev
+                  </div>
+                </div>
+
+                {/* Browser Content */}
+                <div className="flex h-96">
+                  {/* Sidebar */}
+                  <div className="w-64 bg-gray-50 p-4 border-r border-gray-200">
+                    <div className="mb-4">
+                      <button className="w-full bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium">
+                        New Session
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-sm text-gray-600 font-medium">Recent Projects</div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 hover:bg-gray-200 p-2 rounded cursor-pointer">
+                          React Dashboard
+                        </div>
+                        <div className="text-xs text-gray-500 hover:bg-gray-200 p-2 rounded cursor-pointer">
+                          Node.js API
+                        </div>
+                        <div className="text-xs text-gray-500 hover:bg-gray-200 p-2 rounded cursor-pointer">
+                          Python ML Model
+                        </div>
+                        <div className="text-xs text-gray-500 hover:bg-gray-200 p-2 rounded cursor-pointer">
+                          TypeScript Library
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="flex-1 p-6">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Today's Coding Session</h3>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-blue-900">Current Project: React Dashboard</span>
+                          <span className="text-xs text-blue-600">2h 34m</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-gray-600">Active - Dashboard.tsx</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-xs text-gray-600">Last edit: 2 minutes ago</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Productivity Score</span>
+                        <span className="font-semibold text-green-600">92%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Icons */}
+              <motion.div 
+                className="absolute -bottom-4 -right-4 bg-white p-3 rounded-lg shadow-lg"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">N</span>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="absolute -top-4 -right-8 bg-white p-3 rounded-lg shadow-lg"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+              >
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">M</span>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="absolute -bottom-8 -left-4 bg-white p-3 rounded-lg shadow-lg"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+              >
+                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">S</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Network Diagram Section */}
+      <div className="py-20 px-6 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Connected Development Ecosystem
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our integrated network connects all your development tools and provides real-time insights across your entire workflow.
+            </p>
+          </motion.div>
+
+          {/* Network Diagram */}
+          <div className="relative h-96 flex items-center justify-center">
+            {/* Background Grid */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="w-full h-full" style={{
+                backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+                backgroundSize: '20px 20px'
+              }}></div>
+            </div>
+
+            {/* Central Hub */}
+            <motion.div 
+              className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-20 h-20 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <div className="grid grid-cols-2 gap-1">
+                  {[...Array(4)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 bg-white rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Connection Lines */}
+            <svg className="absolute inset-0 w-full h-full z-10">
+              {/* Starting node to central hub */}
+              <motion.path
+                d="M 15% 50% L 50% 50%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.3 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Central hub to upper red branch */}
+              <motion.path
+                d="M 50% 50% Q 60% 30% 70% 25%"
+                stroke="#ef4444"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.5 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Upper red branch connections */}
+              <motion.path
+                d="M 70% 25% L 85% 15%"
+                stroke="#ef4444"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.7 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 70% 25% L 85% 25%"
+                stroke="#ef4444"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 70% 25% L 85% 35%"
+                stroke="#ef4444"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.9 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Central hub to middle gray branch */}
+              <motion.path
+                d="M 50% 50% L 70% 50%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.6 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Middle gray branch connections */}
+              <motion.path
+                d="M 70% 50% L 85% 45%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 70% 50% L 85% 50%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.9 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 70% 50% L 85% 55%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 1.0 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Central hub to lower gray branch */}
+              <motion.path
+                d="M 50% 50% Q 60% 70% 70% 75%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.7 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Lower gray branch connections */}
+              <motion.path
+                d="M 70% 75% L 85% 85%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.9 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Central hub to bottom curved branch */}
+              <motion.path
+                d="M 50% 50% Q 40% 80% 70% 90%"
+                stroke="#374151"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Cross connections between nodes */}
+              <motion.path
+                d="M 85% 15% L 85% 25%"
+                stroke="#ef4444"
+                strokeWidth="1"
+                strokeDasharray="2,2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 85% 25% L 85% 35%"
+                stroke="#ef4444"
+                strokeWidth="1"
+                strokeDasharray="2,2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.3 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 85% 45% L 85% 50%"
+                stroke="#374151"
+                strokeWidth="1"
+                strokeDasharray="2,2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.4 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 85% 50% L 85% 55%"
+                stroke="#374151"
+                strokeWidth="1"
+                strokeDasharray="2,2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.5 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Diagonal connections for more network feel */}
+              <motion.path
+                d="M 85% 35% L 85% 45%"
+                stroke="#ef4444"
+                strokeWidth="1"
+                strokeDasharray="3,3"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.6 }}
+                viewport={{ once: true }}
+              />
+              <motion.path
+                d="M 85% 55% L 85% 85%"
+                stroke="#374151"
+                strokeWidth="1"
+                strokeDasharray="3,3"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 0.8, delay: 1.7 }}
+                viewport={{ once: true }}
+              />
+
+              {/* Connection from central hub to bottom node */}
+              <motion.path
+                d="M 50% 50% L 70% 90%"
+                stroke="#374151"
+                strokeWidth="1"
+                strokeDasharray="4,4"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: 1.0 }}
+                viewport={{ once: true }}
+              />
+            </svg>
+
+            {/* Node Clusters */}
+            {/* Upper Red Nodes */}
+            <motion.div 
+              className="absolute top-[15%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                <div className="grid grid-cols-2 gap-0.5">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[25%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                <div className="grid grid-cols-3 gap-0.5">
+                  {[...Array(9)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[35%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                <div className="grid grid-cols-4 gap-0.5">
+                  {[...Array(16)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Middle Gray Nodes */}
+            <motion.div 
+              className="absolute top-[45%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-4 h-4 bg-gray-700 rounded-full"></div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[50%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-4 h-4 bg-gray-700 rounded-full"></div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[55%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.3 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-4 h-4 bg-gray-700 rounded-full"></div>
+            </motion.div>
+
+            {/* Lower Gray Nodes */}
+            <motion.div 
+              className="absolute top-[85%] left-[85%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                <div className="grid grid-cols-4 gap-0.5">
+                  {[...Array(16)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[90%] left-[70%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                <div className="grid grid-cols-3 gap-0.5">
+                  {[...Array(9)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Small Nodes */}
+            <motion.div 
+              className="absolute top-[25%] left-[70%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            </motion.div>
+
+            <motion.div 
+              className="absolute top-[75%] left-[70%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-3 h-3 bg-gray-700 rounded-full"></div>
+            </motion.div>
+
+            {/* Starting Node */}
+            <motion.div 
+              className="absolute top-[50%] left-[15%]"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-4 h-4 bg-gray-700 rounded-full"></div>
+            </motion.div>
+          </div>
+
+          {/* Network Stats */}
+          <div className="grid md:grid-cols-3 gap-8 mt-16">
+            {[
+              { number: "1000+", label: "Active Developers", color: "red" },
+              { number: "50+", label: "Integrations", color: "gray" },
+              { number: "99.9%", label: "Uptime", color: "blue" }
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className={`text-4xl font-bold text-${stat.color}-600 mb-2`}>
+                  {stat.number}
+                </div>
+                <div className="text-gray-600">{stat.label}</div>
+              </motion.div>
             ))}
-          </motion.h1>
-          <motion.span 
-            className='text-xl md:text-2xl lg:text-3xl text-gray-300 font-light block mb-8'
-            style={{ fontFamily: 'Poppins, sans-serif' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            Track Your Coding Time, Boost Your Productivity
-          </motion.span>
-          <motion.button
-            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-full hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-2xl"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Install VS Code Extension
-          </motion.button>
+          </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-        <motion.div 
-          className='bg-white/10 backdrop-blur-sm p-12 lg:p-16 flex items-center justify-center'
-          initial={{ opacity: 0, x: -100 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-xl">
-            <h2 className="text-4xl lg:text-5xl font-black text-white mb-8" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Track Everything
+      <div className="py-20 px-6 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Why Choose PrimeTime?
             </h2>
-            <div className="space-y-6 text-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Clock size={24} className="text-blue-400" />
-                </div>
-                <p className="font-medium">Monitor time spent per file and project</p>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Code2 size={24} className="text-green-400" />
-                </div>
-                <p className="font-medium">Track usage across different programming languages</p>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <BarChart2 size={24} className="text-purple-400" />
-                </div>
-                <p className="font-medium">Daily and weekly coding analytics</p>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                <div className="p-2 bg-orange-500/20 rounded-lg">
-                  <Globe size={24} className="text-orange-400" />
-                </div>
-                <p className="font-medium">Website time tracking integration</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        <motion.div 
-          className='bg-gradient-to-br from-purple-900/50 to-blue-900/50 backdrop-blur-sm p-12 lg:p-16 flex items-center justify-center'
-          initial={{ opacity: 0, x: 100 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-xl">
-            <h2 className="text-4xl lg:text-5xl font-black text-white mb-8" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Key Features
-            </h2>
-            <div className="space-y-4 text-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <div className="flex items-center gap-3">
-                <Zap className="text-yellow-400" size={20} />
-                <p className="font-medium">Real-time tracking in VS Code</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Target className="text-green-400" size={20} />
-                <p className="font-medium">Detailed time analytics dashboard</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <TrendingUp className="text-blue-400" size={20} />
-                <p className="font-medium">Language-wise time distribution</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Code2 className="text-purple-400" size={20} />
-                <p className="font-medium">Project-based time tracking</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <BarChart2 className="text-orange-400" size={20} />
-                <p className="font-medium">Daily productivity insights</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Globe className="text-red-400" size={20} />
-                <p className="font-medium">Website usage monitoring</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Comprehensive coding analytics and productivity insights to help you become a more efficient developer.
+            </p>
+          </motion.div>
 
-      {/* Analytics Preview Section */}
-      <div className='min-h-screen bg-gradient-to-br from-slate-800/50 to-purple-800/50 backdrop-blur-sm p-12'>
-        <motion.div
-          className="max-w-7xl mx-auto"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-4xl lg:text-5xl font-black text-white mb-12 text-center" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Analytics Dashboard
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { 
-                title: "Time Analytics", 
-                desc: "View detailed breakdowns of your coding time across projects and files",
+              {
                 icon: Clock,
+                title: "Real-time Tracking",
+                description: "Monitor your coding sessions in real-time with detailed file and project analytics.",
                 color: "blue"
               },
-              { 
-                title: "Language Stats", 
-                desc: "Track time spent in different programming languages and frameworks",
-                icon: Code2,
+              {
+                icon: BarChart2,
+                title: "Advanced Analytics",
+                description: "Get insights into your productivity patterns and coding habits.",
                 color: "green"
               },
-              { 
-                title: "Productivity Insights", 
-                desc: "Get insights about your most productive coding hours and patterns",
-                icon: TrendingUp,
+              {
+                icon: Code2,
+                title: "Language Insights",
+                description: "Track time spent across different programming languages and frameworks.",
                 color: "purple"
+              },
+              {
+                icon: Target,
+                title: "Goal Setting",
+                description: "Set coding goals and track your progress with detailed metrics.",
+                color: "orange"
+              },
+              {
+                icon: TrendingUp,
+                title: "Productivity Trends",
+                description: "Analyze your productivity trends and identify improvement opportunities.",
+                color: "pink"
+              },
+              {
+                icon: Globe,
+                title: "Multi-platform",
+                description: "Works seamlessly across VS Code, web browsers, and other development tools.",
+                color: "indigo"
               }
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
-                whileHover={{ y: -10 }}
-                transition={{ duration: 0.3 }}
+                className="bg-white rounded-xl p-6 hover:bg-gray-50 transition-colors duration-300 shadow-sm"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
               >
-                <div className={`h-48 bg-gradient-to-br from-${feature.color}-500/20 to-${feature.color}-600/20 flex items-center justify-center`}>
-                  <feature.icon className={`h-16 w-16 text-${feature.color}-400`} />
+                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-lg flex items-center justify-center mb-4`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-600`} />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                    {feature.desc}
-                  </p>
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Footer Section */}
-      <footer className="bg-slate-900/80 backdrop-blur-sm py-12 px-6 border-t border-white/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-6">
-            <a href="https://github.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-              <Github size={24} />
-            </a>
-            <a href="https://www.linkedin.com/in/saurabh-maurya-92b727245/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-              <Linkedin size={24} />
-            </a>
-            <a href="https://www.instagram.com/asksaurabhhh/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-              <Instagram size={24} />
-            </a>
-            <a href="https://x.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-              <Twitter size={24} />
-            </a>
-          </div>
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-6">
+              <a href="https://github.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
+                <Github size={24} />
+              </a>
+              <a href="https://www.linkedin.com/in/saurabh-maurya-92b727245/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
+                <Linkedin size={24} />
+              </a>
+              <a href="https://www.instagram.com/asksaurabhhh/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
+                <Instagram size={24} />
+              </a>
+              <a href="https://x.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
+                <Twitter size={24} />
+              </a>
+            </div>
 
-          <div className="flex items-center text-gray-400 gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            <Copyright size={16} />
-            <span>Copyright 2025 Prime Time. All rights reserved.</span>
-          </div>
+            <div className="flex items-center text-gray-400 gap-2">
+              <Copyright size={16} />
+              <span>Copyright 2025 PrimeTime. All rights reserved.</span>
+            </div>
 
-          <div 
-            className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
-            style={{ fontFamily: 'Poppins, sans-serif' }}
-            onClick={() => window.open("https://www.asksaurabh.xyz/")}
-          >
-            <span>Developed by</span>
-            <img className='w-8 h-8 rounded-full' src="https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp" alt="Developer" />
+            <div 
+              className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg"
+              onClick={() => window.open("https://www.asksaurabh.xyz/")}
+            >
+              <span>Developed by</span>
+              <img className='w-8 h-8 rounded-full' src="https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp" alt="Developer" />
+            </div>
           </div>
         </div>
       </footer>
