@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from "../../lib/axios";
+import { io, Socket } from 'socket.io-client';
 import { 
   Plus, 
   Folder, 
@@ -53,6 +54,15 @@ const Projects = () => {
   const [codingStats, setCodingStats] = useState<CodingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [realTimeUpdates, setRealTimeUpdates] = useState<any[]>([]);
+  const [liveStats, setLiveStats] = useState({
+    totalDuration: 0,
+    totalLinesChanged: 0,
+    totalCharactersTyped: 0,
+    totalSessions: 0,
+    currentSession: null as any
+  });
 
   const [timeFormat, setTimeFormat] = useState<'detailed' | 'simple' | 'hours'>('detailed');
   const [selectedChart, setSelectedChart] = useState<'bar' | 'pie' | 'line'>('bar');
@@ -60,7 +70,63 @@ const Projects = () => {
   useEffect(() => {
     fetchProjects();
     fetchCodingStats();
+    initializeWebSocket();
   }, []);
+
+  // Process real-time updates to calculate live stats
+  useEffect(() => {
+    if (realTimeUpdates.length > 0) {
+      const latestUpdate = realTimeUpdates[realTimeUpdates.length - 1];
+      
+      setLiveStats(prev => ({
+        totalDuration: latestUpdate.duration || prev.totalDuration,
+        totalLinesChanged: latestUpdate.linesChanged || prev.totalLinesChanged,
+        totalCharactersTyped: latestUpdate.charactersTyped || prev.totalCharactersTyped,
+        totalSessions: prev.totalSessions + (latestUpdate.isActive ? 0 : 1),
+        currentSession: latestUpdate.isActive ? latestUpdate : null
+      }));
+    }
+  }, [realTimeUpdates]);
+
+  const initializeWebSocket = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const socket = io('http://localhost:7000', {
+        transports: ['websocket', 'polling']
+      });
+
+      socket.on('connect', () => {
+        console.log('🔌 Projects WebSocket connected');
+      });
+
+      socket.on('coding_update', (data: any) => {
+        console.log('📊 Projects received coding update:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+        
+        // Refresh stats when new data arrives
+        fetchCodingStats();
+      });
+
+      socket.on('session_update', (data: any) => {
+        console.log('🔄 Projects received session update:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('🔌 Projects WebSocket disconnected');
+      });
+
+      setSocket(socket);
+
+      return () => {
+        socket.disconnect();
+      };
+    } catch (error) {
+      console.error('❌ Failed to initialize Projects WebSocket:', error);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -331,8 +397,59 @@ const Projects = () => {
             </div>
           </div>
 
+          {/* Real-time Connection Status */}
+          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <h3 className="text-white font-bold mb-2">Real-time Connection Status:</h3>
+            <div className="text-white text-sm space-y-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${socket ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>WebSocket: {socket ? '✅ Connected' : '❌ Disconnected'}</span>
+              </div>
+              <div>Updates Received: <span className="font-semibold text-green-400">{realTimeUpdates.length}</span></div>
+              {realTimeUpdates.length > 0 && (
+                <div className="mt-3">
+                  <div className="font-semibold mb-2">Latest Activity:</div>
+                  <div className="bg-black/30 p-3 rounded text-xs space-y-1">
+                    <div><span className="text-gray-400">File:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].fileName}</span></div>
+                    <div><span className="text-gray-400">Language:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].language}</span></div>
+                    <div><span className="text-gray-400">Duration:</span> <span className="text-green-400">{formatDuration(realTimeUpdates[realTimeUpdates.length - 1].duration, timeFormat)}</span></div>
+                    <div><span className="text-gray-400">Lines Changed:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].linesChanged}</span></div>
+                    <div><span className="text-gray-400">Characters:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].charactersTyped}</span></div>
+                    <div><span className="text-gray-400">Status:</span> <span className={`${realTimeUpdates[realTimeUpdates.length - 1].isActive ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {realTimeUpdates[realTimeUpdates.length - 1].isActive ? '🟢 Active' : '🟡 Session Ended'}
+                    </span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Live Session Display */}
+          {liveStats.currentSession && (
+            <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <h3 className="text-white font-bold mb-2">🟢 Live Coding Session:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Current File</div>
+                  <div className="font-semibold">{liveStats.currentSession.fileName}</div>
+                  <div className="text-xs text-gray-400">{liveStats.currentSession.language}</div>
+                </div>
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Session Duration</div>
+                  <div className="font-semibold text-green-400">{formatDuration(liveStats.currentSession.duration, timeFormat)}</div>
+                  <div className="text-xs text-gray-400">Active Now</div>
+                </div>
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Activity</div>
+                  <div className="font-semibold">{liveStats.currentSession.linesChanged} lines, {liveStats.currentSession.charactersTyped} chars</div>
+                  <div className="text-xs text-gray-400">This session</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* VS Code Analytics Summary */}
-          {codingStats && (
+          {(codingStats || liveStats.totalDuration > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-gray-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -340,8 +457,12 @@ const Projects = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-300 mb-1">Total VS Code Time</p>
                     <p className="text-3xl font-bold text-white">
-                      {formatDuration(codingStats.totalDuration || 0, timeFormat)}
+                      {liveStats.totalDuration > 0 ? formatDuration(liveStats.totalDuration, timeFormat) :
+                       codingStats ? formatDuration(codingStats.totalDuration || 0, timeFormat) : '0h 0m'}
                     </p>
+                    {liveStats.currentSession && (
+                      <p className="text-xs text-green-400 mt-1">🟢 Live: {formatDuration(liveStats.currentSession.duration, timeFormat)}</p>
+                    )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
                     <Timer className="h-8 w-8 text-white" />
@@ -355,8 +476,12 @@ const Projects = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-300 mb-1">Coding Sessions</p>
                     <p className="text-3xl font-bold text-white">
-                      {codingStats.totalSessions || 0}
+                      {liveStats.totalSessions > 0 ? liveStats.totalSessions :
+                       codingStats ? codingStats.totalSessions || 0 : 0}
                     </p>
+                    {liveStats.currentSession && (
+                      <p className="text-xs text-green-400 mt-1">🟢 Active Session</p>
+                    )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
                     <Code className="h-8 w-8 text-white" />
@@ -370,8 +495,12 @@ const Projects = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-300 mb-1">Lines Changed</p>
                     <p className="text-3xl font-bold text-white">
-                      {(codingStats.totalLinesChanged || 0).toLocaleString()}
+                      {liveStats.totalLinesChanged > 0 ? liveStats.totalLinesChanged.toLocaleString() :
+                       codingStats ? (codingStats.totalLinesChanged || 0).toLocaleString() : '0'}
                     </p>
+                    {liveStats.currentSession && liveStats.currentSession.linesChanged > 0 && (
+                      <p className="text-xs text-green-400 mt-1">🟢 +{liveStats.currentSession.linesChanged}</p>
+                    )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
                     <FileText className="h-8 w-8 text-white" />
@@ -385,8 +514,13 @@ const Projects = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-300 mb-1">Avg Session</p>
                     <p className="text-3xl font-bold text-white">
-                      {formatDuration(codingStats.averageSessionDuration || 0, 'simple')}
+                      {liveStats.totalDuration > 0 && liveStats.totalSessions > 0 ? 
+                       formatDuration(liveStats.totalDuration / liveStats.totalSessions, 'simple') :
+                       codingStats ? formatDuration(codingStats.averageSessionDuration || 0, 'simple') : '0m'}
                     </p>
+                    {liveStats.currentSession && (
+                      <p className="text-xs text-green-400 mt-1">🟢 Current: {formatDuration(liveStats.currentSession.duration, 'simple')}</p>
+                    )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
                     <Zap className="h-8 w-8 text-white" />
