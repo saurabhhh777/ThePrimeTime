@@ -2,6 +2,130 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Generate mock data for demonstration
+const generateMockData = (period) => {
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (period) {
+        case '7days':
+            startDate.setDate(now.getDate() - 7);
+            break;
+        case '30days':
+            startDate.setDate(now.getDate() - 30);
+            break;
+        case '3months':
+            startDate.setMonth(now.getMonth() - 3);
+            break;
+        case 'yearly':
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
+        default:
+            startDate.setDate(now.getDate() - 30);
+    }
+
+    const totalDuration = 18000000; // 5 hours in milliseconds
+    const totalLinesChanged = 1250;
+    const totalCharactersTyped = 45000;
+    const totalSessions = 15;
+    const totalFiles = 8;
+
+    const languages = {
+        'JavaScript': {
+            duration: 7200000, // 2 hours
+            files: 3,
+            linesChanged: 500,
+            charactersTyped: 18000,
+            percentage: 40
+        },
+        'TypeScript': {
+            duration: 5400000, // 1.5 hours
+            files: 2,
+            linesChanged: 400,
+            charactersTyped: 15000,
+            percentage: 30
+        },
+        'Python': {
+            duration: 3600000, // 1 hour
+            files: 2,
+            linesChanged: 250,
+            charactersTyped: 8000,
+            percentage: 20
+        },
+        'CSS': {
+            duration: 1800000, // 0.5 hours
+            files: 1,
+            linesChanged: 100,
+            charactersTyped: 4000,
+            percentage: 10
+        }
+    };
+
+    const productiveHours = [
+        { hour: 14, duration: 3600000, percentage: 20 },
+        { hour: 10, duration: 2700000, percentage: 15 },
+        { hour: 16, duration: 1800000, percentage: 10 },
+        { hour: 9, duration: 900000, percentage: 5 },
+        { hour: 20, duration: 450000, percentage: 2.5 }
+    ];
+
+    const projects = [
+        {
+            id: '1',
+            name: 'ThePrimeTime Extension',
+            duration: 9000000,
+            linesChanged: 600,
+            charactersTyped: 25000,
+            sessions: 8,
+            percentage: 50
+        },
+        {
+            id: '2',
+            name: 'Personal Portfolio',
+            duration: 5400000,
+            linesChanged: 400,
+            charactersTyped: 15000,
+            sessions: 5,
+            percentage: 30
+        },
+        {
+            id: '3',
+            name: 'API Backend',
+            duration: 3600000,
+            linesChanged: 250,
+            charactersTyped: 5000,
+            sessions: 2,
+            percentage: 20
+        }
+    ];
+
+    return {
+        period,
+        summary: {
+            totalDuration,
+            totalLinesChanged,
+            totalCharactersTyped,
+            totalSessions,
+            totalFiles,
+            averageSessionDuration: totalDuration / totalSessions,
+            averageLinesPerSession: totalLinesChanged / totalSessions,
+            averageCharsPerSession: totalCharactersTyped / totalSessions
+        },
+        languages,
+        dailyActivity: {},
+        weeklyActivity: {},
+        hourlyActivity: {},
+        projects,
+        productiveHours,
+        insights: {
+            mostUsedLanguage: 'JavaScript',
+            mostProductiveHour: 14,
+            totalProjects: 3,
+            averageProjectDuration: totalDuration / 3
+        }
+    };
+};
+
 // Get comprehensive user reports
 export const getUserReports = async (req, res) => {
     try {
@@ -36,6 +160,16 @@ export const getUserReports = async (req, res) => {
             },
             orderBy: { timestamp: 'desc' }
         });
+
+        // If no real data exists, return mock data for demonstration
+        if (codingStats.length === 0) {
+            const mockData = generateMockData(period);
+            return res.status(200).json({
+                success: true,
+                data: mockData,
+                message: "Showing demo data. Connect your VS Code extension to see real statistics."
+            });
+        }
 
         // Calculate basic statistics
         const totalDuration = codingStats.reduce((sum, stat) => sum + stat.duration, 0);
