@@ -224,165 +224,69 @@ const Leaderboard = () => {
         return;
       }
 
-      // Try to fetch real data from API
-      try {
-        const response = await instance.get(`/api/v1/leader/global?period=${timeFilter}&country=${selectedCountry}&limit=50`);
+      // Fetch real data from API
+      const response = await instance.get(`/api/v1/leader/global?period=${timeFilter}&country=${selectedCountry}&limit=50`);
+      
+      if (response.data.success && response.data.data.length > 0) {
+        setLeaderboardData(response.data.data);
+        setLiveLeaderboard(response.data.data);
         
-        if (response.data.success && response.data.data.length > 0) {
-          setLeaderboardData(response.data.data);
-          // Set current user as the first one for demo purposes
-          setCurrentUser(response.data.data[0]);
-          return;
+        // Get current user's data
+        const currentUserData = response.data.data.find((user: any) => 
+          user.user._id === localStorage.getItem('userId') || 
+          user.user.email === localStorage.getItem('userEmail')
+        );
+        
+        if (currentUserData) {
+          setCurrentUser(currentUserData);
+        } else {
+          // If current user not in leaderboard, create a basic entry
+          const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+          const basicUser: LeaderboardUser = {
+            _id: 'current-user',
+            user: {
+              _id: userInfo._id || 'current-user',
+              username: userInfo.username || 'You',
+              email: userInfo.email || '',
+              profilePicture: userInfo.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+            },
+            user_rank: response.data.data.length + 1,
+            user_id: userInfo._id || 'current-user',
+            hours_coded: 0,
+            daily_avg: 0,
+            language_used: [],
+            country: userInfo.country || 'Unknown',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          setCurrentUser(basicUser);
         }
-      } catch (apiError) {
-        console.log("API not available, using mock data");
-      }
-
-      // Fallback to mock data if API fails or returns no data
-      const mockData: LeaderboardUser[] = [
-        {
-          _id: '1',
+      } else {
+        // No users in leaderboard yet
+        setLeaderboardData([]);
+        setLiveLeaderboard([]);
+        
+        // Create basic current user entry
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const basicUser: LeaderboardUser = {
+          _id: 'current-user',
           user: {
-            _id: 'user1',
-            username: 'CodeMaster',
-            email: 'codemaster@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+            _id: userInfo._id || 'current-user',
+            username: userInfo.username || 'You',
+            email: userInfo.email || '',
+            profilePicture: userInfo.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
           },
           user_rank: 1,
-          user_id: 'user1',
-          hours_coded: 156,
-          daily_avg: 5.2,
-          language_used: ['JavaScript', 'TypeScript', 'Python'],
-          country: 'USA',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '2',
-          user: {
-            _id: 'user2',
-            username: 'DevGuru',
-            email: 'devguru@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 2,
-          user_id: 'user2',
-          hours_coded: 142,
-          daily_avg: 4.7,
-          language_used: ['Python', 'Java', 'C++'],
-          country: 'India',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '3',
-          user: {
-            _id: 'user3',
-            username: 'TechWizard',
-            email: 'techwizard@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 3,
-          user_id: 'user3',
-          hours_coded: 128,
-          daily_avg: 4.3,
-          language_used: ['React', 'Node.js', 'MongoDB'],
-          country: 'UK',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '4',
-          user: {
-            _id: 'user4',
-            username: 'DataNinja',
-            email: 'dataninja@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 4,
-          user_id: 'user4',
-          hours_coded: 115,
-          daily_avg: 3.8,
-          language_used: ['Python', 'R', 'SQL'],
-          country: 'Canada',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '5',
-          user: {
-            _id: 'user5',
-            username: 'FullStackHero',
-            email: 'fullstackhero@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 5,
-          user_id: 'user5',
-          hours_coded: 98,
-          daily_avg: 3.3,
-          language_used: ['JavaScript', 'Python', 'Go'],
-          country: 'Germany',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '6',
-          user: {
-            _id: 'user6',
-            username: 'AlgoMaster',
-            email: 'algomaster@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 6,
-          user_id: 'user6',
-          hours_coded: 87,
-          daily_avg: 2.9,
-          language_used: ['C++', 'Java', 'Python'],
-          country: 'Japan',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '7',
-          user: {
-            _id: 'user7',
-            username: 'CloudArchitect',
-            email: 'cloudarchitect@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 7,
-          user_id: 'user7',
-          hours_coded: 76,
-          daily_avg: 2.5,
-          language_used: ['Python', 'Terraform', 'Docker'],
-          country: 'Australia',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        },
-        {
-          _id: '8',
-          user: {
-            _id: 'user8',
-            username: 'MobileDev',
-            email: 'mobiledev@example.com',
-            profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
-          },
-          user_rank: 8,
-          user_id: 'user8',
-          hours_coded: 65,
-          daily_avg: 2.2,
-          language_used: ['Swift', 'Kotlin', 'React Native'],
-          country: 'France',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-15T00:00:00.000Z'
-        }
-      ];
-
-      setLeaderboardData(mockData);
-      setLiveLeaderboard(mockData); // Initialize live leaderboard
-      
-      // Set current user as the first one for demo purposes
-      setCurrentUser(mockData[0]);
+          user_id: userInfo._id || 'current-user',
+          hours_coded: 0,
+          daily_avg: 0,
+          language_used: [],
+          country: userInfo.country || 'Unknown',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setCurrentUser(basicUser);
+      }
       
     } catch (error: any) {
       console.error("Error fetching leaderboard:", error);
@@ -403,88 +307,17 @@ const Leaderboard = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Try to fetch real user profile data
-      try {
-        const response = await instance.get(`/api/v1/user/profile/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (response.data.success) {
-          setSelectedUserProfile(response.data.data);
-          setShowUserProfile(true);
-          return;
-        }
-      } catch (apiError) {
-        console.log("API not available, using mock profile data");
+      // Fetch real user profile data
+      const response = await instance.get(`/api/v1/user/profile/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setSelectedUserProfile(response.data.data);
+        setShowUserProfile(true);
+      } else {
+        toast.error("Failed to load user profile");
       }
-
-      // Mock profile data
-      const mockProfileData: UserProfileData = {
-        user: {
-          username: 'CodeMaster',
-          email: 'codemaster@example.com',
-          profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-          bio: 'Full-stack developer passionate about creating innovative solutions. Love working with React, Node.js, and Python.',
-          location: 'San Francisco, CA',
-          website: 'https://codemaster.dev',
-          github: 'github.com/codemaster'
-        },
-        stats: {
-          totalHours: 156,
-          weeklyHours: 42,
-          monthlyHours: 156,
-          totalActivities: 89,
-          totalProjects: 12,
-          averageSessionDuration: 2.3,
-          longestStreak: 15,
-          currentStreak: 7
-        },
-        achievements: [
-          {
-            id: '1',
-            name: 'Early Bird',
-            description: 'Code for 7 days in a row',
-            icon: '🌅',
-            unlockedAt: '2024-01-10T00:00:00.000Z'
-          },
-          {
-            id: '2',
-            name: 'Language Master',
-            description: 'Use 5 different programming languages',
-            icon: '🏆',
-            unlockedAt: '2024-01-15T00:00:00.000Z'
-          },
-          {
-            id: '3',
-            name: 'Night Owl',
-            description: 'Code for 3 hours after midnight',
-            icon: '🦉',
-            unlockedAt: '2024-01-12T00:00:00.000Z'
-          }
-        ],
-        recentActivity: [
-          { date: '2024-01-17', hours: 6.5, projects: ['ThePrimeTime Extension', 'Personal Portfolio'] },
-          { date: '2024-01-16', hours: 4.2, projects: ['API Backend', 'Mobile App'] },
-          { date: '2024-01-15', hours: 7.1, projects: ['E-commerce Platform'] },
-          { date: '2024-01-14', hours: 3.8, projects: ['Data Analysis Tool'] },
-          { date: '2024-01-13', hours: 5.4, projects: ['ThePrimeTime Extension'] }
-        ],
-        topLanguages: [
-          { name: 'JavaScript', hours: 45, percentage: 35 },
-          { name: 'TypeScript', hours: 38, percentage: 29 },
-          { name: 'Python', hours: 32, percentage: 25 },
-          { name: 'React', hours: 28, percentage: 22 }
-        ],
-        topProjects: [
-          { name: 'ThePrimeTime Extension', hours: 45, lastActive: '2024-01-17' },
-          { name: 'Personal Portfolio', hours: 32, lastActive: '2024-01-16' },
-          { name: 'API Backend', hours: 28, lastActive: '2024-01-15' },
-          { name: 'Mobile App', hours: 22, lastActive: '2024-01-14' }
-        ]
-      };
-
-      setSelectedUserProfile(mockProfileData);
-      setShowUserProfile(true);
       
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -558,6 +391,31 @@ const Leaderboard = () => {
                   className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   Go to Sign In
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (leaderboardData.length === 0 && !loading && !error) {
+    return (
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
+        <div className="ml-[16.5rem] mr-1">
+          <Hnavbar className="mt-1" />
+          <main className="mt-1 ml-1 mr-1 p-6">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-white text-xl text-center">
+                <div className="mb-4">No developers found in this leaderboard yet.</div>
+                <p className="text-gray-400 text-sm">Be the first to start coding!</p>
+                <button 
+                  onClick={() => window.location.href = '/'} 
+                  className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium mt-4"
+                >
+                  Start Coding
                 </button>
               </div>
             </div>
@@ -794,106 +652,122 @@ const Leaderboard = () => {
               </div>
             </div>
             
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-white/5">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Rank</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Developer</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Country</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Hours Coded</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Daily Avg</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Languages</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/10">
-                  {(realTimeUpdates.length > 0 ? liveLeaderboard : filteredData).map((user, index) => (
-                    <tr 
-                      key={user._id} 
-                      className="hover:bg-white/5 transition-colors cursor-pointer"
-                      onClick={() => handleUserClick(user)}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${getRankBadge(user.user_rank)}`}>
-                            {getRankIcon(user.user_rank)}
-                          </div>
-                          <span className="text-white font-semibold">#{user.user_rank}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={user.user.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
-                            alt={user.user.username}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                          <div>
-                            <div className="font-medium text-white">{user.user.username}</div>
-                            <div className="text-sm text-gray-400">{user.user.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-gray-400" />
-                          <span className="text-white">{user.country}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-blue-400" />
-                          <span className="text-white font-semibold">{user.hours_coded.toFixed(1)}h</span>
-                          {user._id === currentUser?._id && realTimeUpdates.length > 0 && (
-                            <span className="text-xs text-green-400">🟢 +{((liveStats.totalDuration / (1000 * 60 * 60))).toFixed(2)}h</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-400" />
-                          <span className="text-white font-semibold">{user.daily_avg.toFixed(1)}h/day</span>
-                          {user._id === currentUser?._id && liveStats.currentSession && (
-                            <span className="text-xs text-green-400">🟢 Live</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {user.language_used.slice(0, 3).map((lang, langIndex) => (
-                            <span
-                              key={langIndex}
-                              className="px-2 py-1 bg-white/10 text-white text-xs rounded-full border border-white/20"
-                            >
-                              {lang}
-                            </span>
-                          ))}
-                          {user.language_used.length > 3 && (
-                            <span className="px-2 py-1 bg-white/10 text-white text-xs rounded-full border border-white/20">
-                              +{user.language_used.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {user._id === currentUser?._id && realTimeUpdates.length > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span className="text-green-400 text-sm">🟢 Active</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                            <span className="text-gray-400 text-sm">Offline</span>
-                          </div>
-                        )}
-                      </td>
+            {filteredData.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-white/5">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Rank</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Developer</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Country</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Hours Coded</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Daily Avg</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Languages</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {(realTimeUpdates.length > 0 ? liveLeaderboard : filteredData).map((user, index) => (
+                      <tr 
+                        key={user._id} 
+                        className="hover:bg-white/5 transition-colors cursor-pointer"
+                        onClick={() => handleUserClick(user)}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${getRankBadge(user.user_rank)}`}>
+                              {getRankIcon(user.user_rank)}
+                            </div>
+                            <span className="text-white font-semibold">#{user.user_rank}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={user.user.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                              alt={user.user.username}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                            <div>
+                              <div className="font-medium text-white">{user.user.username}</div>
+                              <div className="text-sm text-gray-400">{user.user.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-gray-400" />
+                            <span className="text-white">{user.country}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-400" />
+                            <span className="text-white font-semibold">{user.hours_coded.toFixed(1)}h</span>
+                            {user._id === currentUser?._id && realTimeUpdates.length > 0 && (
+                              <span className="text-xs text-green-400">🟢 +{((liveStats.totalDuration / (1000 * 60 * 60))).toFixed(2)}h</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-green-400" />
+                            <span className="text-white font-semibold">{user.daily_avg.toFixed(1)}h/day</span>
+                            {user._id === currentUser?._id && liveStats.currentSession && (
+                              <span className="text-xs text-green-400">🟢 Live</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-1">
+                            {user.language_used.slice(0, 3).map((lang, langIndex) => (
+                              <span
+                                key={langIndex}
+                                className="px-2 py-1 bg-white/10 text-white text-xs rounded-full border border-white/20"
+                              >
+                                {lang}
+                              </span>
+                            ))}
+                            {user.language_used.length > 3 && (
+                              <span className="px-2 py-1 bg-white/10 text-white text-xs rounded-full border border-white/20">
+                                +{user.language_used.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {user._id === currentUser?._id && realTimeUpdates.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <span className="text-green-400 text-sm">🟢 Active</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                              <span className="text-gray-400 text-sm">Offline</span>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-12 text-center">
+                <div className="text-gray-400 mb-4">
+                  <Trophy className="h-16 w-16 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">No developers found</h3>
+                  <p className="text-gray-400">Be the first to start coding and appear on the leaderboard!</p>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/'} 
+                  className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Start Coding
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Stats Summary */}
