@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from "../../lib/axios";
+import { io, Socket } from 'socket.io-client';
 import { 
   Trophy, 
   Medal, 
@@ -102,6 +103,18 @@ const Leaderboard = () => {
   const [currentUser, setCurrentUser] = useState<LeaderboardUser | null>(null);
   const [timeFilter, setTimeFilter] = useState('all');
   
+  // Real-time states
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [realTimeUpdates, setRealTimeUpdates] = useState<any[]>([]);
+  const [liveStats, setLiveStats] = useState({
+    totalDuration: 0,
+    totalLinesChanged: 0,
+    totalCharactersTyped: 0,
+    totalSessions: 0,
+    currentSession: null as any
+  });
+  const [liveLeaderboard, setLiveLeaderboard] = useState<LeaderboardUser[]>([]);
+  
   // User profile modal states
   const [selectedUserProfile, setSelectedUserProfile] = useState<UserProfileData | null>(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -115,7 +128,90 @@ const Leaderboard = () => {
 
   useEffect(() => {
     fetchLeaderboard();
+    initializeWebSocket();
   }, [timeFilter]);
+
+  // Process real-time updates to calculate live stats
+  useEffect(() => {
+    if (realTimeUpdates.length > 0) {
+      const latestUpdate = realTimeUpdates[realTimeUpdates.length - 1];
+      
+      setLiveStats(prev => ({
+        totalDuration: latestUpdate.duration || prev.totalDuration,
+        totalLinesChanged: latestUpdate.linesChanged || prev.totalLinesChanged,
+        totalCharactersTyped: latestUpdate.charactersTyped || prev.totalCharactersTyped,
+        totalSessions: prev.totalSessions + (latestUpdate.isActive ? 0 : 1),
+        currentSession: latestUpdate.isActive ? latestUpdate : null
+      }));
+
+      // Update live leaderboard with real-time data
+      updateLiveLeaderboard(latestUpdate);
+    }
+  }, [realTimeUpdates]);
+
+  const initializeWebSocket = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const socket = io('http://localhost:7000', {
+        transports: ['websocket', 'polling']
+      });
+
+      socket.on('connect', () => {
+        console.log('🔌 Leaderboard WebSocket connected');
+      });
+
+      socket.on('coding_update', (data: any) => {
+        console.log('📊 Leaderboard received coding update:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+      });
+
+      socket.on('session_update', (data: any) => {
+        console.log('🔄 Leaderboard received session update:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('🔌 Leaderboard WebSocket disconnected');
+      });
+
+      setSocket(socket);
+
+      return () => {
+        socket.disconnect();
+      };
+    } catch (error) {
+      console.error('❌ Failed to initialize Leaderboard WebSocket:', error);
+    }
+  };
+
+  const updateLiveLeaderboard = (latestUpdate: any) => {
+    // Update the current user's stats in real-time
+    if (currentUser && latestUpdate) {
+      const updatedCurrentUser = {
+        ...currentUser,
+        hours_coded: currentUser.hours_coded + (latestUpdate.duration || 0) / (1000 * 60 * 60), // Convert ms to hours
+        daily_avg: ((currentUser.hours_coded + (latestUpdate.duration || 0) / (1000 * 60 * 60)) / 30), // Assuming 30 days
+        language_used: latestUpdate.language ? 
+          [...new Set([...currentUser.language_used, latestUpdate.language])] : 
+          currentUser.language_used
+      };
+
+      setCurrentUser(updatedCurrentUser);
+
+      // Update the leaderboard data with real-time updates
+      setLiveLeaderboard(prev => {
+        const updated = prev.map(user => {
+          if (user._id === currentUser._id) {
+            return updatedCurrentUser;
+          }
+          return user;
+        });
+        return updated.sort((a, b) => b.hours_coded - a.hours_coded);
+      });
+    }
+  };
 
   const fetchLeaderboard = async () => {
     try {
@@ -283,6 +379,7 @@ const Leaderboard = () => {
       ];
 
       setLeaderboardData(mockData);
+      setLiveLeaderboard(mockData); // Initialize live leaderboard
       
       // Set current user as the first one for demo purposes
       setCurrentUser(mockData[0]);
@@ -489,6 +586,77 @@ const Leaderboard = () => {
             </div>
           </div>
 
+          {/* Real-time Connection Status */}
+          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <h3 className="text-white font-bold mb-2">Real-time Connection Status:</h3>
+            <div className="text-white text-sm space-y-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${socket ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>WebSocket: {socket ? '✅ Connected' : '❌ Disconnected'}</span>
+              </div>
+              <div>Updates Received: <span className="font-semibold text-green-400">{realTimeUpdates.length}</span></div>
+              {realTimeUpdates.length > 0 && (
+                <div className="mt-3">
+                  <div className="font-semibold mb-2">Latest Activity:</div>
+                  <div className="bg-black/30 p-3 rounded text-xs space-y-1">
+                    <div><span className="text-gray-400">File:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].fileName}</span></div>
+                    <div><span className="text-gray-400">Language:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].language}</span></div>
+                    <div><span className="text-gray-400">Duration:</span> <span className="text-green-400">{((realTimeUpdates[realTimeUpdates.length - 1].duration || 0) / (1000 * 60 * 60)).toFixed(2)}h</span></div>
+                    <div><span className="text-gray-400">Lines Changed:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].linesChanged}</span></div>
+                    <div><span className="text-gray-400">Characters:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].charactersTyped}</span></div>
+                    <div><span className="text-gray-400">Status:</span> <span className={`${realTimeUpdates[realTimeUpdates.length - 1].isActive ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {realTimeUpdates[realTimeUpdates.length - 1].isActive ? '🟢 Active' : '🟡 Session Ended'}
+                    </span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Live Session Display */}
+          {liveStats.currentSession && (
+            <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <h3 className="text-white font-bold mb-2">🟢 Live Coding Session:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Current File</div>
+                  <div className="font-semibold">{liveStats.currentSession.fileName}</div>
+                  <div className="text-xs text-gray-400">{liveStats.currentSession.language}</div>
+                </div>
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Session Duration</div>
+                  <div className="font-semibold text-green-400">{((liveStats.currentSession.duration || 0) / (1000 * 60 * 60)).toFixed(2)}h</div>
+                  <div className="text-xs text-gray-400">Active Now</div>
+                </div>
+                <div className="bg-black/30 p-3 rounded">
+                  <div className="text-sm text-gray-300">Activity</div>
+                  <div className="font-semibold">{liveStats.currentSession.linesChanged} lines, {liveStats.currentSession.charactersTyped} chars</div>
+                  <div className="text-xs text-gray-400">This session</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Debug: Real-time Data */}
+          {realTimeUpdates.length > 0 && (
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+              <h3 className="text-white font-bold mb-2">🔍 Debug: Real-time Data Received:</h3>
+              <div className="text-white text-sm space-y-2">
+                <div>Total Updates: <span className="font-semibold text-yellow-400">{realTimeUpdates.length}</span></div>
+                <div>Live Stats: <span className="font-semibold text-yellow-400">{liveStats.totalDuration > 0 ? 'Active' : 'Inactive'}</span></div>
+                <div>Current Session: <span className="font-semibold text-yellow-400">{liveStats.currentSession ? 'Active' : 'None'}</span></div>
+                <div className="mt-3">
+                  <div className="font-semibold mb-2">Latest Update Data:</div>
+                  <div className="bg-black/30 p-3 rounded text-xs space-y-1">
+                    <pre className="text-green-400 overflow-x-auto">
+                      {JSON.stringify(realTimeUpdates[realTimeUpdates.length - 1], null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Filters */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
             <div className="flex flex-col lg:flex-row gap-4 items-center">
@@ -565,20 +733,44 @@ const Leaderboard = () => {
                   <div>
                     <h3 className="text-xl font-bold text-white">{currentUser.user.username}</h3>
                     <p className="text-gray-400">Rank #{currentUser.user_rank} • {currentUser.country}</p>
+                    {realTimeUpdates.length > 0 && (
+                      <p className="text-xs text-green-400 mt-1">🟢 Live: {realTimeUpdates.length} updates received</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white">{currentUser.hours_coded}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {realTimeUpdates.length > 0 ? 
+                        (currentUser.hours_coded + (liveStats.totalDuration / (1000 * 60 * 60))).toFixed(1) : 
+                        currentUser.hours_coded}
+                    </div>
                     <div className="text-sm text-gray-400">Hours Coded</div>
+                    {liveStats.currentSession && (
+                      <div className="text-xs text-green-400">🟢 +{((liveStats.currentSession.duration || 0) / (1000 * 60 * 60)).toFixed(2)}h</div>
+                    )}
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white">{currentUser.daily_avg}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {realTimeUpdates.length > 0 ? 
+                        ((currentUser.hours_coded + (liveStats.totalDuration / (1000 * 60 * 60))) / 30).toFixed(1) : 
+                        currentUser.daily_avg}
+                    </div>
                     <div className="text-sm text-gray-400">Daily Avg</div>
+                    {liveStats.currentSession && (
+                      <div className="text-xs text-green-400">🟢 Live</div>
+                    )}
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white">{currentUser.language_used.length}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {realTimeUpdates.length > 0 ? 
+                        [...new Set([...currentUser.language_used, ...realTimeUpdates.map(u => u.language).filter(Boolean)])].length : 
+                        currentUser.language_used.length}
+                    </div>
                     <div className="text-sm text-gray-400">Languages</div>
+                    {realTimeUpdates.length > 0 && (
+                      <div className="text-xs text-green-400">🟢 +{realTimeUpdates.filter(u => u.language).length}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -588,8 +780,18 @@ const Leaderboard = () => {
           {/* Leaderboard Table */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden">
             <div className="p-6 border-b border-white/20">
-              <h2 className="text-2xl font-bold text-white">Top Developers</h2>
-              <p className="text-gray-400">Showing {filteredData.length} developers</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Top Developers</h2>
+                  <p className="text-gray-400">Showing {filteredData.length} developers</p>
+                </div>
+                {realTimeUpdates.length > 0 && (
+                  <div className="flex items-center gap-2 text-green-400 text-sm">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>🟢 Live Updates</span>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="overflow-x-auto">
@@ -602,10 +804,11 @@ const Leaderboard = () => {
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Hours Coded</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Daily Avg</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Languages</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-300">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {filteredData.map((user, index) => (
+                  {(realTimeUpdates.length > 0 ? liveLeaderboard : filteredData).map((user, index) => (
                     <tr 
                       key={user._id} 
                       className="hover:bg-white/5 transition-colors cursor-pointer"
@@ -641,13 +844,19 @@ const Leaderboard = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-blue-400" />
-                          <span className="text-white font-semibold">{user.hours_coded}h</span>
+                          <span className="text-white font-semibold">{user.hours_coded.toFixed(1)}h</span>
+                          {user._id === currentUser?._id && realTimeUpdates.length > 0 && (
+                            <span className="text-xs text-green-400">🟢 +{((liveStats.totalDuration / (1000 * 60 * 60))).toFixed(2)}h</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <TrendingUp className="h-4 w-4 text-green-400" />
-                          <span className="text-white font-semibold">{user.daily_avg}h/day</span>
+                          <span className="text-white font-semibold">{user.daily_avg.toFixed(1)}h/day</span>
+                          {user._id === currentUser?._id && liveStats.currentSession && (
+                            <span className="text-xs text-green-400">🟢 Live</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -666,6 +875,19 @@ const Leaderboard = () => {
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {user._id === currentUser?._id && realTimeUpdates.length > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-green-400 text-sm">🟢 Active</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            <span className="text-gray-400 text-sm">Offline</span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
