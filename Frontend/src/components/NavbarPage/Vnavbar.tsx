@@ -1,6 +1,7 @@
 import React from 'react'
-import {Timer} from 'lucide-react';
-import {Link, useLocation} from "react-router-dom";
+import {Timer, LogOut} from 'lucide-react';
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import toast from 'react-hot-toast';
 
 interface VnavbarProps {
   className?: string;
@@ -8,9 +9,21 @@ interface VnavbarProps {
 
 const Vnavbar: React.FC<VnavbarProps> = ({ className }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    // Clear token from localStorage
+    localStorage.removeItem('token');
+    
+    // Show success message
+    toast.success('Logged out successfully');
+    
+    // Redirect to signin page
+    navigate('/signin');
   };
 
   return (
@@ -133,6 +146,18 @@ const Vnavbar: React.FC<VnavbarProps> = ({ className }) => {
                 >
                   Settings
                 </Link>
+            </h2>
+            
+            {/* Logout Button */}
+            <hr className='border-gray-700'/>
+            <h2>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                >
+                  <LogOut className='h-4 w-4'/>
+                  Logout
+                </button>
             </h2>
         </div>
     </div>

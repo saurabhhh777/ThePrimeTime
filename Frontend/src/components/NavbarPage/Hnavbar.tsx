@@ -1,12 +1,26 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import {House} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom'
+import { House, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface HnavbarProps {
   className?: string;
 }
 
 const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear token from localStorage
+    localStorage.removeItem('token');
+    
+    // Show success message
+    toast.success('Logged out successfully');
+    
+    // Redirect to signin page
+    navigate('/signin');
+  };
+
   return (
     <span className={`flex justify-between items-center bg-black text-white rounded-lg p-4 font-['Poppins'] ${className || ''}`}>
       <div className='flex items-center gap-4'>
@@ -17,6 +31,14 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
         </h2>
       </div>
       <div className='flex items-center gap-4'>
+        <button
+          onClick={handleLogout}
+          className="group flex items-center gap-2 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all duration-200"
+          title="Logout"
+        >
+          <LogOut className='h-4 w-4 group-hover:scale-110 transition-all duration-200'/>
+          <span className="hidden md:inline">Logout</span>
+        </button>
         <h2>
           <Link to="/profile" className="group">
             <img 
