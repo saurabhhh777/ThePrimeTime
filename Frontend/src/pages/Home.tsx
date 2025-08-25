@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
-import { ChevronDown, Star, Search, ArrowRight, Users, Shield, Folder, Code2, Monitor, BarChart2, Clock, Github, Instagram, Linkedin, Twitter, Copyright, Zap, Target, TrendingUp, Globe, Activity, Database, Rocket } from 'lucide-react';
+import { Star, ArrowRight, Code2, BarChart2, Activity, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import Footer from '../components/ui/footer';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -75,33 +79,33 @@ const Home = () => {
           <div className="flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                <button 
-                  className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                <Button 
+                  variant="default"
                   onClick={handleDashboard}
                 >
                   Dashboard
-                </button>
-                <button 
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                </Button>
+                <Button 
+                  variant="outline"
                   onClick={handleLogout}
                 >
                   Sign out
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                <button 
-                  className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                <Button 
+                  variant="default"
                   onClick={handleJoinWaitlist}
                 >
                   Get Started
-                </button>
-                <button 
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                </Button>
+                <Button 
+                  variant="outline"
                   onClick={handleLogin}
                 >
                   Sign in
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -140,15 +144,20 @@ const Home = () => {
             </p>
 
             {/* CTA Button */}
-            <motion.button
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={isLoggedIn ? handleDashboard : handleJoinWaitlist}
             >
-              {isLoggedIn ? 'Go to Dashboard' : 'Start Tracking'}
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
+              <Button
+                size="lg"
+                variant="gradient"
+                onClick={isLoggedIn ? handleDashboard : handleJoinWaitlist}
+                className="px-8 py-4 text-lg"
+              >
+                {isLoggedIn ? 'Go to Dashboard' : 'Start Tracking'}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -167,43 +176,45 @@ const Home = () => {
           </div>
 
           {/* Extension Features */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">Real-time tracking</span>
+          <Card className="shadow-lg">
+            <CardContent className="p-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Real-time tracking</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Status bar integration</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Token-based authentication</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">Status bar integration</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">Token-based authentication</span>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Automatic data sync</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Language usage tracking</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">File change monitoring</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">Automatic data sync</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">Language usage tracking</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium">File change monitoring</span>
-                </div>
+              <div className="mt-6 text-center">
+                <Button variant="default" size="lg">
+                  Download Extension
+                </Button>
               </div>
-            </div>
-            <div className="mt-6 text-center">
-              <button className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium">
-                Download Extension
-              </button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -257,7 +268,7 @@ const Home = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-bold text-gray-400">{feature.number}</span>
+                        <Badge variant="secondary" className="text-xs">{feature.number}</Badge>
                         <h3 className="text-xl font-semibold text-gray-900">{feature.title}</h3>
                       </div>
                       <p className="text-gray-600">{feature.description}</p>
@@ -266,15 +277,19 @@ const Home = () => {
                 ))}
               </div>
 
-              <motion.button
-                className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              <motion.div
+                className="mt-8"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={isLoggedIn ? handleDashboard : handleJoinWaitlist}
               >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
+                <Button
+                  variant="gradient"
+                  onClick={isLoggedIn ? handleDashboard : handleJoinWaitlist}
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </motion.div>
             </div>
 
             {/* Right Side - Stats */}
@@ -287,16 +302,19 @@ const Home = () => {
               ].map((stat, index) => (
                 <motion.div
                   key={index}
-                  className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <div className={`text-3xl font-bold text-${stat.color}-600 mb-2`}>
-                    {stat.number}
-                  </div>
-                  <div className="text-gray-600 text-sm">{stat.label}</div>
+                  <Card className="text-center shadow-sm border border-gray-100">
+                    <CardContent className="p-6">
+                      <div className={`text-3xl font-bold text-${stat.color}-600 mb-2`}>
+                        {stat.number}
+                      </div>
+                      <div className="text-gray-600 text-sm">{stat.label}</div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </div>
@@ -364,45 +382,47 @@ const Home = () => {
             ].map((plan, index) => (
               <motion.div
                 key={index}
-                className={`bg-${plan.color === 'purple' ? 'purple-50' : 'white'} rounded-xl p-6 border-2 ${plan.popular ? 'border-purple-500' : 'border-gray-200'} hover:shadow-lg transition-all duration-300 cursor-pointer group relative`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-600">/{plan.period}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{plan.dataRetention} data retention</p>
-                </div>
-                
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                
-                <button className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                  plan.popular 
-                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                    : 'bg-gray-900 text-white hover:bg-gray-800'
-                }`}>
-                  {plan.name === 'Free' ? 'Get Started' : 'Choose Plan'}
-                </button>
+                <Card className={`relative ${plan.popular ? 'border-purple-500 border-2' : ''} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge variant="success" className="text-xs">
+                        Most Popular
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <CardHeader className="text-center pb-4">
+                    <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    <div className="mb-2">
+                      <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
+                      <span className="text-gray-600">/{plan.period}</span>
+                    </div>
+                    <CardDescription>{plan.dataRetention} data retention</CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <ul className="space-y-3 mb-6">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <Button 
+                      variant={plan.popular ? "gradient" : "default"}
+                      className="w-full"
+                    >
+                      {plan.name === 'Free' ? 'Get Started' : 'Choose Plan'}
+                    </Button>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -410,39 +430,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-6">
-              <a href="https://github.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
-                <Github size={24} />
-              </a>
-              <a href="https://www.linkedin.com/in/saurabh-maurya-92b727245/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
-                <Linkedin size={24} />
-              </a>
-              <a href="https://www.instagram.com/asksaurabhhh/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
-                <Instagram size={24} />
-              </a>
-              <a href="https://x.com/saurabhhh777" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg">
-                <Twitter size={24} />
-              </a>
-            </div>
-
-            <div className="flex items-center text-gray-400 gap-2">
-              <Copyright size={16} />
-              <span>Copyright 2025 PrimeTime. All rights reserved.</span>
-            </div>
-
-            <div 
-              className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg"
-              onClick={() => window.open("https://www.asksaurabh.xyz/")}
-            >
-              <span>Developed by</span>
-              <img className='w-8 h-8 rounded-full' src="https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp" alt="Developer" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
