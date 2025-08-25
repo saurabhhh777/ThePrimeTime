@@ -1,9 +1,35 @@
 import { motion } from 'framer-motion';
 import { ChevronDown, Star, MessageCircle, Zap, Target, TrendingUp, Code2, BarChart2, Clock, Globe, Github, Instagram, Linkedin, Twitter, Copyright } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const Home = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decode JWT token to get user info
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUser(payload);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setIsLoggedIn(false);
+        setCurrentUser(null);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setCurrentUser(null);
+    }
+  };
 
   const handleLogin = () => {
     navigate('/signin');
@@ -11,6 +37,17 @@ const Home = () => {
 
   const handleJoinWaitlist = () => {
     navigate('/signup');
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    navigate('/');
   };
 
   return (
@@ -36,20 +73,39 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons - Conditional Rendering */}
           <div className="flex items-center gap-4">
-            <button 
-              className="px-4 py-2 hover:bg-gray-800 rounded transition-colors"
-              onClick={handleLogin}
-            >
-              Log in
-            </button>
-            <button 
-              className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors"
-              onClick={handleJoinWaitlist}
-            >
-              Join the waitlist
-            </button>
+            {isLoggedIn ? (
+              <>
+                <button 
+                  className="px-4 py-2 bg-white text-gray-900 rounded hover:bg-gray-100 transition-colors font-medium"
+                  onClick={handleDashboard}
+                >
+                  Dashboard
+                </button>
+                <button 
+                  className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className="px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+                  onClick={handleLogin}
+                >
+                  Log in
+                </button>
+                <button 
+                  className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors"
+                  onClick={handleJoinWaitlist}
+                >
+                  Join the waitlist
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -96,14 +152,14 @@ const Home = () => {
                 reducing your development time by over 50%.
               </p>
 
-              {/* CTA Button */}
+              {/* CTA Button - Conditional based on login status */}
               <motion.button
                 className="px-8 py-4 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleJoinWaitlist}
+                onClick={isLoggedIn ? handleDashboard : handleJoinWaitlist}
               >
-                Join the waitlist
+                {isLoggedIn ? 'Go to Dashboard' : 'Join the waitlist'}
               </motion.button>
             </motion.div>
 
