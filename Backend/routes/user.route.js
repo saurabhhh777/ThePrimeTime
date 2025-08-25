@@ -1,15 +1,33 @@
 import express from "express";
 const router = express.Router();
-import {Signin,Signup,Logout,Dashboard,getProfile,updateProfile,getUserSettings,updateUserSettings,updatePassword,deleteAccount} from "../controllers/user.controller.js";
-import {isAuth} from "../middlewares/isAuth.middle.js";
+import { 
+  Signup, 
+  Signin, 
+  Logout, 
+  Dashboard, 
+  updateProfile,
+  getUserSettings,
+  updateUserSettings,
+  updatePassword,
+  deleteAccount,
+  checkUsernameAvailability,
+  sendSignupOTP,
+  verifySignupOTP
+} from "../controllers/user.controller.js";
+import { isAuth } from "../middlewares/isAuth.middle.js";
 
+// Public routes
+router.post("/signup", Signup);
+router.post("/signin", Signin);
+router.post("/logout", Logout);
 
+// New enhanced signup routes
+router.post("/check-username", checkUsernameAvailability);
+router.post("/send-signup-otp", sendSignupOTP);
+router.post("/verify-signup-otp", verifySignupOTP);
 
-router.route("/signup").post(Signup);
-router.route("/signin").post(Signin);
-router.route("/logout").post(Logout);
+// Protected routes
 router.route("/dashboard").get(isAuth, Dashboard);
-router.route("/profile").get(isAuth, getProfile);
 router.route("/profile").put(isAuth, updateProfile);
 router.route("/settings").get(isAuth, getUserSettings);
 router.route("/settings").put(isAuth, updateUserSettings);

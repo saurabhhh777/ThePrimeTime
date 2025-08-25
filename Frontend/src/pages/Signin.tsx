@@ -1,11 +1,12 @@
 import { userAuthStore } from "../../store/userAuthStore.tsx";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Timer } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Timer, User } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import React from "react"; // Added missing import
 
 interface FormData {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -16,7 +17,7 @@ const Signin = () => {
   const [loading, setLoading] = useState(false);
 
   const [formdata, setFormdata] = useState<FormData>({
-    email: "",
+    identifier: "",
     password: "",
   });
 
@@ -25,18 +26,18 @@ const Signin = () => {
   };
 
   const handleSignin = async () => {
-    if (!formdata.email || !formdata.password) {
+    if (!formdata.identifier || !formdata.password) {
       toast.error("Please fill in all fields");
       return;
     }
 
     setLoading(true);
-    const success = await signin(formdata.email, formdata.password);
+    const success = await signin(formdata.identifier, formdata.password);
     if (success) {
       navigate("/dashboard");
       toast.success("Welcome back! Login successful");
     } else {
-      toast.error("Invalid email or password");
+      toast.error("Invalid username/email or password");
     }
     setLoading(false);
   };
@@ -46,6 +47,11 @@ const Signin = () => {
       handleSignin();
     }
   };
+
+  // Check if identifier is email or username
+  const isEmail = formdata.identifier.includes('@');
+  const identifierIcon = isEmail ? Mail : User;
+  const identifierPlaceholder = isEmail ? "Enter your email" : "Enter your username";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins'] p-4">
@@ -76,23 +82,26 @@ const Signin = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Email Field */}
+            {/* Username/Email Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Email Address</label>
+              <label className="text-sm font-medium text-gray-300">Username or Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  {React.createElement(identifierIcon, { className: "h-5 w-5 text-gray-400" })}
                 </div>
                 <input
-                  type="email"
-                  name="email"
-                  value={formdata.email}
-                  placeholder="Enter your email"
+                  type="text"
+                  name="identifier"
+                  value={formdata.identifier}
+                  placeholder={identifierPlaceholder}
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300"
                 />
               </div>
+              <p className="text-gray-400 text-xs">
+                You can sign in with your username or email address
+              </p>
             </div>
 
             {/* Password Field */}
@@ -155,7 +164,7 @@ const Signin = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-500 text-xs">
-            © 2024 ThePrimeTime. All rights reserved.
+            By signing in, you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
       </div>

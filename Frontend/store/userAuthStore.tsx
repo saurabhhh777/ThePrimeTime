@@ -17,7 +17,7 @@ interface AuthStore {
     isAuthenticated: boolean;
     isLogin: boolean;
     signup: (username: string, email: string, password: string) => Promise<boolean>;
-    signin: (email: string, password: string) => Promise<boolean>;
+    signin: (identifier: string, password: string) => Promise<boolean>;
     createBlog: (title: string, content: string) => Promise<void>;
     getAllBlogs: () => Promise<Blog[]>;
 }
@@ -42,9 +42,9 @@ export const userAuthStore = create<AuthStore>((set) => ({
         }
     },
 
-    signin: async (email: string, password: string) => {
+    signin: async (identifier: string, password: string) => {
         try {
-            const response = await instance.post("/api/v1/user/signin", { email, password });
+            const response = await instance.post("/api/v1/user/signin", { identifier, password });
             if (response.data.success && response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 set({ user: response.data.user, isAuthenticated: true, isLogin: true });

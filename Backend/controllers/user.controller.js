@@ -8,12 +8,246 @@ import billingModel from "../models/billing.model.js";
 import notificationsModel from "../models/notifications.model.js";
 import preferencesModel from "../models/preferences.model.js";
 import leaderModel from "../models/leader.model.js";
+import { sendOTPToMail } from "../middlewares/SendOTPToMail.js";
 dotenv.config();
 
 const prisma = new PrismaClient();
 
+// Store OTPs temporarily (in production, use Redis or database)
+const otpStore = new Map();
 
-//user signup controller 
+// Check username availability
+export const checkUsernameAvailability = async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({
+        message: "Username is required",
+        success: false,
+      });
+    }
+
+    // Check if username exists
+    const existingUser = await userModel.findOne({ username });
+    
+    return res.status(200).json({
+      success: true,
+      available: !existingUser,
+      message: existingUser ? "Username already exists" : "Username is available"
+    });
+  } catch (error) {
+    console.error("Error checking username availability:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false
+    });
+  }
+};
+
+// Send OTP for account creation
+export const sendSignupOTP = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        message: "Username, email, and password are required",
+        success: false,
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await userModel.findOne({ 
+      $or: [{ email }, { username }] 
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({
+        message: existingUser.email === email ? "Email already exists" : "Username already exists",
+        success: false,
+      });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP with user data (expires in 10 minutes)
+    otpStore.set(email, {
+      username,
+      email,
+      password,
+      otp,
+      createdAt: Date.now()
+    });
+
+    // Send OTP via email
+    await sendOTPToMail(email, otp, "Account Creation OTP");
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email",
+      email: email
+    });
+  } catch (error) {
+    console.error("Error sending signup OTP:", error);
+    return res.status(500).json({
+      message: "Failed to send OTP",
+      success: false
+    });
+  }
+};
+
+// Verify OTP and create account
+export const verifySignupOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    
+    if (!email || !otp) {
+      return res.status(400).json({
+        message: "Email and OTP are required",
+        success: false,
+      });
+    }
+
+    // Get stored data
+    const storedData = otpStore.get(email);
+    
+    if (!storedData) {
+      return res.status(400).json({
+        message: "OTP expired or not found",
+        success: false,
+      });
+    }
+
+    // Check if OTP is expired (10 minutes)
+    if (Date.now() - storedData.createdAt > 10 * 60 * 1000) {
+      otpStore.delete(email);
+      return res.status(400).json({
+        message: "OTP expired",
+        success: false,
+      });
+    }
+
+    // Verify OTP
+    if (storedData.otp !== otp) {
+      return res.status(400).json({
+        message: "Invalid OTP",
+        success: false,
+      });
+    }
+
+    // Create user account
+    const { username, password } = storedData;
+    
+    // Hash password
+    const hashedPassword = await bcryptjs.hash(password, 12);
+
+    // Create user in MongoDB
+    const newUser = await userModel.create({
+      username: username,
+      email: email,
+      password: hashedPassword,
+    });
+
+    // Create user in PostgreSQL
+    try {
+      await prisma.user.create({
+        data: {
+          id: newUser._id.toString(),
+          email: email,
+          name: username,
+          password: hashedPassword,
+          apiToken: Math.random().toString(36).substring(2) + Date.now().toString(36)
+        }
+      });
+    } catch (error) {
+      console.log("Error creating user in PostgreSQL:", error.message);
+    }
+
+    // Create associated models
+    await accountModel.create({
+      user: newUser._id,
+      emails: {
+        primary_email: email
+      },
+      secret_api_key: Math.random().toString(36).substring(2) + Date.now().toString(36)
+    });
+
+    const currentDate = new Date();
+    const nextBillingDate = new Date();
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+    await billingModel.create({
+      user: newUser._id,
+      plan: 'free',
+      status: 'active',
+      transaction_id: 'FREE-' + Math.random().toString(36).substring(2),
+      payment_method: 'none',
+      last_payment_date: currentDate,
+      next_billing_date: nextBillingDate
+    });
+
+    await notificationsModel.create({
+      user: newUser._id,
+      notifications: [],
+      settings: {
+        email_notifications: true,
+        push_notifications: true
+      }
+    });
+
+    await preferencesModel.create({
+      user: newUser._id,
+      theme: 'light',
+      language: 'en'
+    });
+
+    await leaderModel.create({
+      user: newUser._id,
+      score: 0,
+      user_id: username,
+      user_rank: 0,
+      hours_coded: 0,
+      daily_avg: 0,
+    });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+      },
+      process.env.JWT_SECRET
+    );
+
+    // Clear OTP from store
+    otpStore.delete(email);
+
+    return res
+      .status(200)
+      .cookie("token", token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .json({
+        message: "Account created successfully",
+        success: true,
+        token: token,
+        user: {
+          id: newUser._id,
+          username: newUser.username,
+          email: newUser.email
+        },
+      });
+  } catch (error) {
+    console.error("Error verifying signup OTP:", error);
+    return res.status(500).json({
+      message: "Server error during account creation",
+      success: false
+    });
+  }
+};
+
+//user signup controller (legacy - kept for backward compatibility)
 export const Signup = async (req, res) => {
   try {
     console.log("Starting signup process...");
@@ -163,26 +397,35 @@ export const Signup = async (req, res) => {
   }
 };
 
-//signin controller 
+//signin controller (updated to support username/email)
 export const Signin = async (req, res) => {
   try {
     console.log("Starting signin process...");
-    const { email, password } = req.body;
-    console.log(`Signin attempt for email: ${email}`);
+    const { identifier, password } = req.body; // identifier can be username or email
+    console.log(`Signin attempt for identifier: ${identifier}`);
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       console.log("Signin failed: Missing credentials");
       return res.status(400).json({
-        message: "Please enter email and password",
+        message: "Please enter username/email and password",
         success: false,
       });
     }
 
-    const user = await userModel.findOne({email});
+    // Check if identifier is email or username
+    const isEmail = identifier.includes('@');
+    
+    let user;
+    if (isEmail) {
+      user = await userModel.findOne({ email: identifier });
+    } else {
+      user = await userModel.findOne({ username: identifier });
+    }
+    
     console.log(`User found: ${user ? 'Yes' : 'No'}`);
 
     if(!user){
-      console.log(`Signin failed: No user found with email ${email}`);
+      console.log(`Signin failed: No user found with identifier ${identifier}`);
       return res.status(404).json({
         message: "User does not exist",
         success: false,
@@ -200,29 +443,39 @@ export const Signin = async (req, res) => {
       });
     }
 
+    // sign the jwt token using jsonwebtoken
     console.log("Generating JWT token...");
-    const token = jwt.sign({
-      id: user._id
-    }, process.env.JWT_SECRET);
-    
-    console.log("Signin successful, sending response...");
-    return res.status(200).cookie("token", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    }).json({
-      message: "Login successful",
-      success: true,
-      token: token,
-      user: {
+    const token = jwt.sign(
+      {
         id: user._id,
-        username: user.username,
-        email: user.email
-      }
-    });
-    
+      },
+      process.env.JWT_SECRET
+    );
+
+    console.log(`${user.email}'s user token is :${token}`);
+    console.log(`User data is ${user}`);
+
+    //setting the cookie to the browser for CRUD operations
+    console.log("Signin successful, sending response...");
+    return res
+      .status(200)
+      .cookie("token", token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .json({
+        message: "Signin Successfully",
+        success: true,
+        token: token,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email
+        },
+      });
   } catch (error) {
     console.error("Error in signin process:", error);
     return res.status(500).json({
-      message: "Server error",
+      message: "Server error during signin",
       success: false
     });
   }
