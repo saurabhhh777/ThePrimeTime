@@ -1,7 +1,18 @@
 import { motion } from 'framer-motion';
 import { ChevronDown, Star, MessageCircle, Zap, Target, TrendingUp, Code2, BarChart2, Clock, Globe, Github, Instagram, Linkedin, Twitter, Copyright } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate('/signin');
+  };
+
+  const handleJoinWaitlist = () => {
+    navigate('/signup');
+  };
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden">
       {/* Navigation Bar */}
@@ -27,10 +38,16 @@ const Home = () => {
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-4">
-            <button className="px-4 py-2 hover:bg-gray-800 rounded transition-colors">
+            <button 
+              className="px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+              onClick={handleLogin}
+            >
               Log in
             </button>
-            <button className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors">
+            <button 
+              className="px-4 py-2 border border-white rounded hover:bg-white hover:text-gray-900 transition-colors"
+              onClick={handleJoinWaitlist}
+            >
               Join the waitlist
             </button>
           </div>
@@ -84,6 +101,7 @@ const Home = () => {
                 className="px-8 py-4 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleJoinWaitlist}
               >
                 Join the waitlist
               </motion.button>
@@ -262,7 +280,7 @@ const Home = () => {
             <svg className="absolute inset-0 w-full h-full z-10">
               {/* Starting node to central hub */}
               <motion.path
-                d="M 15% 50% L 50% 50%"
+                d="M 15% 50% L 42% 50%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -274,7 +292,7 @@ const Home = () => {
 
               {/* Central hub to upper red branch */}
               <motion.path
-                d="M 50% 50% Q 60% 30% 70% 25%"
+                d="M 58% 50% Q 65% 35% 70% 25%"
                 stroke="#ef4444"
                 strokeWidth="2"
                 fill="none"
@@ -286,7 +304,7 @@ const Home = () => {
 
               {/* Upper red branch connections */}
               <motion.path
-                d="M 70% 25% L 85% 15%"
+                d="M 70% 25% L 82% 15%"
                 stroke="#ef4444"
                 strokeWidth="2"
                 fill="none"
@@ -296,7 +314,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 70% 25% L 85% 25%"
+                d="M 70% 25% L 82% 25%"
                 stroke="#ef4444"
                 strokeWidth="2"
                 fill="none"
@@ -306,7 +324,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 70% 25% L 85% 35%"
+                d="M 70% 25% L 82% 35%"
                 stroke="#ef4444"
                 strokeWidth="2"
                 fill="none"
@@ -318,7 +336,7 @@ const Home = () => {
 
               {/* Central hub to middle gray branch */}
               <motion.path
-                d="M 50% 50% L 70% 50%"
+                d="M 58% 50% L 70% 50%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -330,7 +348,7 @@ const Home = () => {
 
               {/* Middle gray branch connections */}
               <motion.path
-                d="M 70% 50% L 85% 45%"
+                d="M 70% 50% L 82% 45%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -340,7 +358,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 70% 50% L 85% 50%"
+                d="M 70% 50% L 82% 50%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -350,7 +368,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 70% 50% L 85% 55%"
+                d="M 70% 50% L 82% 55%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -362,7 +380,7 @@ const Home = () => {
 
               {/* Central hub to lower gray branch */}
               <motion.path
-                d="M 50% 50% Q 60% 70% 70% 75%"
+                d="M 58% 50% Q 65% 65% 70% 75%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -374,7 +392,7 @@ const Home = () => {
 
               {/* Lower gray branch connections */}
               <motion.path
-                d="M 70% 75% L 85% 85%"
+                d="M 70% 75% L 82% 85%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -386,7 +404,7 @@ const Home = () => {
 
               {/* Central hub to bottom curved branch */}
               <motion.path
-                d="M 50% 50% Q 40% 80% 70% 90%"
+                d="M 58% 50% Q 45% 75% 70% 90%"
                 stroke="#374151"
                 strokeWidth="2"
                 fill="none"
@@ -398,7 +416,7 @@ const Home = () => {
 
               {/* Cross connections between nodes */}
               <motion.path
-                d="M 85% 15% L 85% 25%"
+                d="M 82% 15% L 82% 25%"
                 stroke="#ef4444"
                 strokeWidth="1"
                 strokeDasharray="2,2"
@@ -409,7 +427,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 85% 25% L 85% 35%"
+                d="M 82% 25% L 82% 35%"
                 stroke="#ef4444"
                 strokeWidth="1"
                 strokeDasharray="2,2"
@@ -420,7 +438,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 85% 45% L 85% 50%"
+                d="M 82% 45% L 82% 50%"
                 stroke="#374151"
                 strokeWidth="1"
                 strokeDasharray="2,2"
@@ -431,7 +449,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 85% 50% L 85% 55%"
+                d="M 82% 50% L 82% 55%"
                 stroke="#374151"
                 strokeWidth="1"
                 strokeDasharray="2,2"
@@ -444,7 +462,7 @@ const Home = () => {
 
               {/* Diagonal connections for more network feel */}
               <motion.path
-                d="M 85% 35% L 85% 45%"
+                d="M 82% 35% L 82% 45%"
                 stroke="#ef4444"
                 strokeWidth="1"
                 strokeDasharray="3,3"
@@ -455,7 +473,7 @@ const Home = () => {
                 viewport={{ once: true }}
               />
               <motion.path
-                d="M 85% 55% L 85% 85%"
+                d="M 82% 55% L 82% 85%"
                 stroke="#374151"
                 strokeWidth="1"
                 strokeDasharray="3,3"
@@ -468,7 +486,7 @@ const Home = () => {
 
               {/* Connection from central hub to bottom node */}
               <motion.path
-                d="M 50% 50% L 70% 90%"
+                d="M 58% 50% L 70% 90%"
                 stroke="#374151"
                 strokeWidth="1"
                 strokeDasharray="4,4"
@@ -483,7 +501,7 @@ const Home = () => {
             {/* Node Clusters */}
             {/* Upper Red Nodes */}
             <motion.div 
-              className="absolute top-[15%] left-[85%]"
+              className="absolute top-[15%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.0 }}
@@ -499,7 +517,7 @@ const Home = () => {
             </motion.div>
 
             <motion.div 
-              className="absolute top-[25%] left-[85%]"
+              className="absolute top-[25%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.1 }}
@@ -515,7 +533,7 @@ const Home = () => {
             </motion.div>
 
             <motion.div 
-              className="absolute top-[35%] left-[85%]"
+              className="absolute top-[35%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.2 }}
@@ -532,7 +550,7 @@ const Home = () => {
 
             {/* Middle Gray Nodes */}
             <motion.div 
-              className="absolute top-[45%] left-[85%]"
+              className="absolute top-[45%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.1 }}
@@ -542,7 +560,7 @@ const Home = () => {
             </motion.div>
 
             <motion.div 
-              className="absolute top-[50%] left-[85%]"
+              className="absolute top-[50%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.2 }}
@@ -552,7 +570,7 @@ const Home = () => {
             </motion.div>
 
             <motion.div 
-              className="absolute top-[55%] left-[85%]"
+              className="absolute top-[55%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.3 }}
@@ -563,7 +581,7 @@ const Home = () => {
 
             {/* Lower Gray Nodes */}
             <motion.div 
-              className="absolute top-[85%] left-[85%]"
+              className="absolute top-[85%] left-[82%]"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 1.0 }}
