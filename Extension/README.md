@@ -1,126 +1,178 @@
 # The Prime Time - VS Code Extension
 
-A powerful VS Code extension that tracks your coding time and productivity metrics in real-time.
+Track your coding time and productivity with detailed analytics directly from VS Code.
 
-## Features
+## 🚀 Features
 
-- **Real-time tracking**: Monitors your coding sessions automatically
-- **Language detection**: Tracks time spent on different programming languages
-- **File and folder analytics**: See which files and folders you work on most
-- **Status bar integration**: View current session time in the status bar
-- **Secure API integration**: Sends data to your Prime Time dashboard
-- **Token-based authentication**: Secure and private data transmission
+- **Real-time Coding Tracking**: Automatically tracks your coding sessions
+- **Language Analytics**: Tracks time spent on different programming languages
+- **File-level Insights**: Monitors which files you work on most
+- **Productivity Metrics**: Tracks lines changed and characters typed
+- **Seamless Integration**: Connects directly to ThePrimeTime dashboard
 
-## Installation
+## 📋 Prerequisites
 
-### From VSIX File
-1. Download the `.vsix` file from the releases
-2. Open VS Code
-3. Go to Extensions (`Ctrl+Shift+X`)
-4. Click the "..." menu and select "Install from VSIX..."
-5. Select the downloaded file
+1. **Backend Server**: Make sure ThePrimeTime backend is running on `http://localhost:7000`
+2. **Frontend**: Ensure the frontend is running on `http://localhost:5173`
+3. **API Token**: Get your API token from your profile page
 
-### From Source
-1. Clone the repository
-2. Navigate to the Extension directory
-3. Run `npm install`
-4. Run `npm run compile`
-5. Press `F5` in VS Code to run the extension in development mode
+## 🔧 Installation & Setup
 
-## Setup
+### 1. Install the Extension
 
-1. **Get your API Token:**
-   - Sign up at [The Prime Time Dashboard](http://localhost:3000)
-   - Go to your profile settings
-   - Copy your API token
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search for "The Prime Time"
+4. Click Install
 
-2. **Configure the Extension:**
-   - Open VS Code Command Palette (`Ctrl+Shift+P`)
-   - Type "Set Prime Time Token"
-   - Enter your API token when prompted
+### 2. Get Your API Token
 
-3. **Start Coding:**
-   - The extension will automatically start tracking
-   - View your current session time in the status bar
-   - Check your analytics at the web dashboard
+1. Open your browser and go to `http://localhost:5173`
+2. Sign in to your account
+3. Go to your profile page (`/@yourusername`)
+4. Click the eye icon to show your API token
+5. Copy the API token
 
-## Commands
+### 3. Configure the Extension
 
-- **Set Prime Time Token**: Configure your API token
-- **Show Prime Time Status**: Display current tracking status
-- **Open Prime Time Dashboard**: Open the web dashboard in your browser
+#### Method 1: Using Command Palette
+1. Open VS Code Command Palette (Ctrl+Shift+P)
+2. Type "Set Prime Time Token"
+3. Paste your API token when prompted
 
-## Configuration
+#### Method 2: Using Settings
+1. Open VS Code Settings (Ctrl+,)
+2. Search for "Prime Time"
+3. Enter your API token in the "API Token" field
+4. Verify the API URL is set to `http://localhost:7000`
 
-You can customize the extension behavior in VS Code settings:
+### 4. Start Tracking
 
+The extension will automatically start tracking when you:
+- Open a file
+- Make changes to code
+- Save files
+
+## 🎯 How It Works
+
+### Data Collection
+The extension collects the following data:
+- **File Information**: File name, path, and language
+- **Session Duration**: Time spent coding
+- **Activity Metrics**: Lines changed and characters typed
+- **Folder Context**: Which project/folder you're working in
+
+### Data Transmission
+- Data is sent to the backend every time you finish a coding session
+- Uses secure API token authentication
+- Automatically retries on connection failures
+
+### Privacy & Security
+- All data is transmitted securely over HTTPS
+- API token is stored locally in VS Code
+- No data is sent without your API token
+
+## 📊 Available Commands
+
+### Set Prime Time Token
+- **Command**: `the-prime-time.setToken`
+- **Description**: Set or update your API token
+- **Usage**: Command Palette → "Set Prime Time Token"
+
+### Show Prime Time Status
+- **Command**: `the-prime-time.showStatus`
+- **Description**: Check current tracking status
+- **Usage**: Command Palette → "Show Prime Time Status"
+
+### Open Prime Time Dashboard
+- **Command**: `the-prime-time.openDashboard`
+- **Description**: Open your dashboard in browser
+- **Usage**: Command Palette → "Open Prime Time Dashboard"
+
+## ⚙️ Configuration
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `thePrimeTime.apiToken` | `""` | Your Prime Time API token |
+| `thePrimeTime.apiUrl` | `http://localhost:7000` | Backend API server URL |
+| `thePrimeTime.frontendUrl` | `http://localhost:5173` | Frontend dashboard URL |
+| `thePrimeTime.trackingEnabled` | `true` | Enable/disable tracking |
+
+### Example Configuration
 ```json
 {
-  "thePrimeTime.apiToken": "your-api-token",
-  "thePrimeTime.apiUrl": "http://localhost:3000",
+  "thePrimeTime.apiToken": "your-api-token-here",
+  "thePrimeTime.apiUrl": "http://localhost:7000",
+  "thePrimeTime.frontendUrl": "http://localhost:5173",
   "thePrimeTime.trackingEnabled": true
 }
 ```
 
-## How It Works
-
-The extension tracks:
-- **Active coding sessions**: Time spent actively editing files
-- **File changes**: Which files you're working on
-- **Language usage**: Programming languages detected
-- **Folder activity**: Project folder organization
-- **Save events**: When you save files
-- **Character count**: How much code you write
-
-## Privacy
-
-- All data is sent securely to your Prime Time dashboard
-- No data is stored locally beyond session tracking
-- You can disable tracking at any time
-- Your API token is stored securely in VS Code's global state
-
-## Troubleshooting
+## 🔍 Troubleshooting
 
 ### Extension Not Tracking
-1. Check if you have a valid API token configured
-2. Verify the API URL is correct
-3. Check the VS Code output panel for error messages
+1. **Check API Token**: Verify your token is correct
+2. **Check Server**: Ensure backend is running on port 7000
+3. **Check Status**: Use "Show Prime Time Status" command
+4. **Restart VS Code**: Sometimes needed after configuration changes
 
-### Status Bar Not Showing
-1. Make sure the extension is enabled
-2. Try reloading VS Code (`Ctrl+Shift+P` > "Developer: Reload Window")
-3. Check if tracking is enabled in settings
+### Connection Errors
+1. **Verify Backend**: Check if `http://localhost:7000` is accessible
+2. **Check Token**: Ensure API token is valid
+3. **Network Issues**: Check firewall/network settings
+4. **CORS Issues**: Ensure backend allows requests from VS Code
 
-### Data Not Syncing
-1. Verify your internet connection
-2. Check if the API server is running
-3. Ensure your API token is valid
+### Data Not Appearing in Dashboard
+1. **Check API Token**: Verify token matches your account
+2. **Check Backend Logs**: Look for errors in backend console
+3. **Test Connection**: Use the test script provided
+4. **Refresh Dashboard**: Data may take a moment to appear
 
-## Development
+## 🧪 Testing Connection
 
-### Building the Extension
-```bash
-npm run compile
+Use the provided test script to verify your setup:
+
+1. Navigate to the extension directory
+2. Install dependencies: `npm install`
+3. Edit `test-connection.js` and add your API token
+4. Run: `node test-connection.js`
+
+## 📈 Data Flow
+
+```
+VS Code Extension → Backend API → Database → Frontend Dashboard
+     ↓                    ↓           ↓           ↓
+  Tracks coding    Receives data   Stores data   Displays analytics
+  sessions         via API token   in PostgreSQL & MongoDB
 ```
 
-### Watching for Changes
-```bash
-npm run watch
-```
+## 🔒 Security Notes
 
-### Packaging for Distribution
-```bash
-npm install -g vsce
-vsce package
-```
+- **API Token**: Keep your token secure and don't share it
+- **Local Storage**: Token is stored in VS Code's secure storage
+- **HTTPS**: Use HTTPS in production for secure data transmission
+- **Token Rotation**: You can regenerate your API token anytime
 
-## Support
+## 🆘 Support
 
-For issues and questions:
-- Create an issue in the GitHub repository
-- Check the web dashboard FAQ
-- Contact the development team
+If you encounter issues:
 
-## License
+1. **Check Status**: Use "Show Prime Time Status" command
+2. **Test Connection**: Run the test script
+3. **Check Logs**: Look at VS Code's Developer Console
+4. **Verify Setup**: Ensure backend and frontend are running
 
-This extension is part of The Prime Time project and is licensed under the MIT License. 
+## 📝 Changelog
+
+### v1.0.0
+- Initial release
+- Real-time coding tracking
+- API token authentication
+- Dashboard integration
+- Multi-language support
+
+---
+
+**Happy Coding! 🚀** 

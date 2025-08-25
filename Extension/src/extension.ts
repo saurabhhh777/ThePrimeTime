@@ -35,8 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     let openDashboardCommand = vscode.commands.registerCommand('the-prime-time.openDashboard', () => {
         const config = vscode.workspace.getConfiguration('thePrimeTime');
-        const apiUrl = config.get<string>('apiUrl', 'http://localhost:3000');
-        vscode.env.openExternal(vscode.Uri.parse(`${apiUrl}/dashboard`));
+        const frontendUrl = config.get<string>('frontendUrl', 'http://localhost:5173');
+        vscode.env.openExternal(vscode.Uri.parse(`${frontendUrl}/dashboard`));
     });
 
     // Add commands to context

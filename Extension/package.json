@@ -41,8 +41,13 @@
         },
         "thePrimeTime.apiUrl": {
           "type": "string",
-          "default": "http://localhost:3000",
-          "description": "Prime Time API server URL"
+          "default": "http://localhost:7000",
+          "description": "Prime Time API server URL (Backend)"
+        },
+        "thePrimeTime.frontendUrl": {
+          "type": "string",
+          "default": "http://localhost:5173",
+          "description": "Prime Time frontend URL (Dashboard)"
         },
         "thePrimeTime.trackingEnabled": {
           "type": "boolean",

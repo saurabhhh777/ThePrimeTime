@@ -25,7 +25,7 @@ export class CodingTracker {
     private context: vscode.ExtensionContext;
     private currentSession: CodingSession | null = null;
     private token: string = '';
-    private apiUrl: string = 'http://localhost:3000';
+    private apiUrl: string = 'http://localhost:7000'; // Fixed port to 7000
     private isTracking: boolean = false;
     private lastSaveTime: Date = new Date();
     private linesChanged: number = 0;
@@ -44,11 +44,13 @@ export class CodingTracker {
 
     private loadApiUrl() {
         const config = vscode.workspace.getConfiguration('thePrimeTime');
-        this.apiUrl = config.get<string>('apiUrl', 'http://localhost:3000');
+        this.apiUrl = config.get<string>('apiUrl', 'http://localhost:7000'); // Fixed default port
     }
 
     public setToken(token: string) {
         this.token = token;
+        this.context.globalState.update('primeTimeToken', token);
+        vscode.window.showInformationMessage('Prime Time token updated successfully!');
     }
 
     public startTracking() {
@@ -76,11 +78,14 @@ export class CodingTracker {
         if (activeEditor) {
             this.startSession(activeEditor.document);
         }
+
+        vscode.window.showInformationMessage('Prime Time tracking started!');
     }
 
     public stopTracking() {
         this.isTracking = false;
         this.endCurrentSession();
+        vscode.window.showInformationMessage('Prime Time tracking stopped!');
     }
 
     private handleDocumentChange(event: vscode.TextDocumentChangeEvent) {
@@ -164,14 +169,21 @@ export class CodingTracker {
 
     private async sendCodingData(data: CodingData) {
         try {
-            await axios.post(`${this.apiUrl}/api/coding-stats`, data, {
+            console.log('Sending coding data to:', `${this.apiUrl}/api/v1/coding-stats/submit`);
+            console.log('Data:', data);
+            
+            const response = await axios.post(`${this.apiUrl}/api/v1/coding-stats/submit`, data, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                     'Content-Type': 'application/json'
                 }
             });
+            
+            console.log('Coding data sent successfully:', response.data);
+            vscode.window.showInformationMessage('Coding session saved!');
         } catch (error) {
             console.error('Failed to send coding data:', error);
+            vscode.window.showErrorMessage('Failed to save coding session. Check your token and connection.');
         }
     }
 

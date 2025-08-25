@@ -8,24 +8,61 @@ const prisma = new PrismaClient();
 export const submitCodingStats = async (req, res) => {
     try {
         const { userId, timestamp, fileName, filePath, language, folder, duration, linesChanged, charactersTyped } = req.body;
+        const authHeader = req.headers.authorization;
 
-        // Validate required fields
-        if (!userId || !fileName || !language || !duration) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        // Check for API token in Authorization header
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ 
+                success: false,
+                error: 'API token required in Authorization header' 
+            });
         }
 
-        // Create coding stats record in both databases
+        const apiToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+        // Find user by API token
+        let user;
+        try {
+            user = await prisma.user.findFirst({
+                where: { apiToken: apiToken }
+            });
+        } catch (error) {
+            console.error('Error finding user by API token:', error);
+            return res.status(401).json({ 
+                success: false,
+                error: 'Invalid API token' 
+            });
+        }
+
+        if (!user) {
+            return res.status(401).json({ 
+                success: false,
+                error: 'Invalid API token or user not found' 
+            });
+        }
+
+        // Validate required fields
+        if (!fileName || !language || !duration) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Missing required fields: fileName, language, duration' 
+            });
+        }
+
+        // Create coding stats record
         const codingStatsData = {
-            userId,
-            timestamp: new Date(timestamp),
+            userId: user.id, // Use the actual user ID from database
+            timestamp: new Date(timestamp || Date.now()),
             fileName,
-            filePath,
+            filePath: filePath || fileName,
             language,
-            folder,
-            duration,
-            linesChanged: linesChanged || 0,
-            charactersTyped: charactersTyped || 0
+            folder: folder || 'unknown',
+            duration: parseInt(duration),
+            linesChanged: parseInt(linesChanged) || 0,
+            charactersTyped: parseInt(charactersTyped) || 0
         };
+
+        console.log('Saving coding stats:', codingStatsData);
 
         // Save to PostgreSQL (Prisma)
         const postgresStats = await prisma.codingStats.create({
@@ -35,8 +72,11 @@ export const submitCodingStats = async (req, res) => {
         // Save to MongoDB
         const mongoStats = await hybridDB.saveToMongoDB('codingStats', codingStatsData);
 
+        console.log('Coding stats saved successfully');
+
         res.status(201).json({ 
             success: true, 
+            message: 'Coding statistics saved successfully',
             data: {
                 postgreSQL: postgresStats,
                 mongoDB: mongoStats
@@ -44,7 +84,10 @@ export const submitCodingStats = async (req, res) => {
         });
     } catch (error) {
         console.error('Error submitting coding stats:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            success: false,
+            error: 'Internal server error while saving coding statistics' 
+        });
     }
 };
 
