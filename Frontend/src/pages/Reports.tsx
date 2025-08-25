@@ -79,12 +79,81 @@ const Reports = () => {
         return;
       }
 
-      const response = await instance.get(`/api/v1/reports?period=${period}`, {
+      // Use the same endpoint as Dashboard to get real data
+      const response = await instance.get(`/api/v1/coding-stats/stats?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       if (response.data.success) {
-        setReportData(response.data.data);
+        const codingStatsData = response.data.data;
+        
+        // Transform coding-stats data into reports format
+        const transformedData: ReportData = {
+          period,
+          summary: {
+            totalDuration: codingStatsData.summary?.totalDuration || 0,
+            totalLinesChanged: codingStatsData.summary?.totalLinesChanged || 0,
+            totalCharactersTyped: codingStatsData.summary?.totalCharactersTyped || 0,
+            totalSessions: codingStatsData.summary?.totalSessions || 0,
+            totalFiles: Object.keys(codingStatsData.languageStats || {}).length,
+            averageSessionDuration: codingStatsData.summary?.averageSessionDuration || 0,
+            averageLinesPerSession: codingStatsData.summary?.totalSessions > 0 ? 
+              codingStatsData.summary.totalLinesChanged / codingStatsData.summary.totalSessions : 0,
+            averageCharsPerSession: codingStatsData.summary?.totalSessions > 0 ? 
+              codingStatsData.summary.totalCharactersTyped / codingStatsData.summary.totalSessions : 0
+          },
+          languages: codingStatsData.languageStats || {},
+          dailyActivity: {},
+          weeklyActivity: {},
+          hourlyActivity: {},
+          projects: [],
+          productiveHours: [],
+          insights: {
+            mostUsedLanguage: Object.keys(codingStatsData.languageStats || {}).sort((a, b) => 
+              (codingStatsData.languageStats[b]?.duration || 0) - (codingStatsData.languageStats[a]?.duration || 0)
+            )[0] || 'None',
+            mostProductiveHour: 0,
+            totalProjects: 0,
+            averageProjectDuration: 0
+          }
+        };
+
+        // Calculate daily activity from coding stats
+        if (codingStatsData.codingStats && codingStatsData.codingStats.length > 0) {
+          const dailyActivity: Record<string, number> = {};
+          codingStatsData.codingStats.forEach((stat: any) => {
+            const date = new Date(stat.timestamp).toISOString().split('T')[0];
+            dailyActivity[date] = (dailyActivity[date] || 0) + stat.duration;
+          });
+          transformedData.dailyActivity = dailyActivity;
+
+          // Calculate hourly activity
+          const hourlyActivity: Record<string, number> = {};
+          codingStatsData.codingStats.forEach((stat: any) => {
+            const hour = new Date(stat.timestamp).getHours();
+            hourlyActivity[hour] = (hourlyActivity[hour] || 0) + stat.duration;
+          });
+
+          // Get most productive hours
+          const productiveHours = Object.entries(hourlyActivity)
+            .sort(([,a], [,b]) => (b as number) - (a as number))
+            .slice(0, 5)
+            .map(([hour, duration]) => ({
+              hour: parseInt(hour),
+              duration: duration as number,
+              percentage: codingStatsData.summary.totalDuration > 0 ? 
+                ((duration as number) / codingStatsData.summary.totalDuration) * 100 : 0
+            }));
+          transformedData.productiveHours = productiveHours;
+          transformedData.hourlyActivity = hourlyActivity;
+
+          // Update insights
+          if (productiveHours.length > 0) {
+            transformedData.insights.mostProductiveHour = productiveHours[0].hour;
+          }
+        }
+
+        setReportData(transformedData);
       } else {
         setError("Failed to load reports");
       }
