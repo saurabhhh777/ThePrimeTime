@@ -16,19 +16,42 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   useEffect(() => {
-    // Get current user from token
+    // Get current user from token and fetch profile data
     const token = localStorage.getItem('token');
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         console.log('JWT Payload:', payload); // Debug log
         setCurrentUser(payload);
+        fetchUserProfile(); // Fetch full user data including username
         fetchNotifications();
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     }
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await instance.get('/api/v1/user/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        const userData = response.data.data.user;
+        setCurrentUser((prev: any) => ({
+          ...prev,
+          username: userData.username,
+          email: userData.email
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -78,25 +101,12 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
   };
 
   const getProfileLink = () => {
-    // Try to get username from currentUser state
+    // Try to get username from currentUser state (which now includes fetched profile data)
     if (currentUser && currentUser.username) {
       return `/@${currentUser.username}`;
     }
     
-    // Fallback: try to get username from token directly
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.username) {
-          return `/@${payload.username}`;
-        }
-      } catch (error) {
-        console.error("Error decoding token in getProfileLink:", error);
-      }
-    }
-    
-    // If no username found, use profile as fallback
+    // If no username in state, return profile as fallback
     return '/profile';
   };
 
