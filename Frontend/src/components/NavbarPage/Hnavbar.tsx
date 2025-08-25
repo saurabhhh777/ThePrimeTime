@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { House, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,20 @@ interface HnavbarProps {
 
 const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Get current user from token
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUser(payload);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     // Clear token from localStorage
@@ -19,6 +33,13 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
     
     // Redirect to signin page
     navigate('/signin');
+  };
+
+  const getProfileLink = () => {
+    if (currentUser && currentUser.username) {
+      return `/@${currentUser.username}`;
+    }
+    return '/profile';
   };
 
   return (
@@ -40,7 +61,7 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
           <span className="hidden md:inline">Logout</span>
         </button>
         <h2>
-          <Link to="/profile" className="group">
+          <Link to={getProfileLink()} className="group">
             <img 
               src="https://github.com/shadcn.png" 
               alt="profile" 

@@ -6,6 +6,7 @@ import {
   Logout, 
   Dashboard, 
   getProfile,
+  getProfileByUsername,
   updateProfile,
   getUserSettings,
   updateUserSettings,
@@ -26,6 +27,9 @@ router.post("/logout", Logout);
 router.post("/check-username", checkUsernameAvailability);
 router.post("/send-signup-otp", sendSignupOTP);
 router.post("/verify-signup-otp", verifySignupOTP);
+
+// Public profile route (no authentication required)
+router.get("/profile/:username", getProfileByUsername);
 
 // Protected routes
 router.route("/dashboard").get(isAuth, Dashboard);

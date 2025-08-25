@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { ActivityCalendar } from "react-activity-calendar";
 import { instance } from "../../lib/axios";
-import { Clock, Code, Calendar, Edit, Settings, Copy, Key, X, Save, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Code, Calendar, Edit, Settings, Copy, Key, X, Save, Eye, EyeOff, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 
 interface ProfileData {
   user: {
@@ -20,6 +21,8 @@ interface ProfileData {
 }
 
 const Profile = () => {
+  const { username } = useParams();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [apiKey, setApiKey] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -34,6 +37,8 @@ const Profile = () => {
   });
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Date picker states
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -42,9 +47,13 @@ const Profile = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
-    fetchProfileData();
-    fetchApiKey();
-  }, []);
+    checkCurrentUser();
+    if (username) {
+      fetchProfileByUsername(username);
+    } else {
+      fetchOwnProfile();
+    }
+  }, [username]);
 
   // Update current time every second
   useEffect(() => {
@@ -54,6 +63,80 @@ const Profile = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  const checkCurrentUser = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decode JWT token to get user info
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUser(payload);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+  };
+
+  const fetchOwnProfile = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError("No authentication token found. Please sign in.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await instance.get("/api/v1/user/profile", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProfileData(response.data.data);
+      setIsOwnProfile(true);
+      
+      // Initialize edit form with current data
+      setEditForm({
+        username: response.data.data.user.username,
+        email: response.data.data.user.email,
+        profilePicture: response.data.data.user.profilePicture
+      });
+
+      // Fetch API key for own profile
+      fetchApiKey();
+    } catch (error) {
+      console.error("Error fetching own profile data:", error);
+      setError("Failed to load profile data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProfileByUsername = async (targetUsername: string) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      // Check if this is the current user's profile
+      if (currentUser && currentUser.username === targetUsername) {
+        setIsOwnProfile(true);
+        fetchOwnProfile();
+        return;
+      }
+
+      // Fetch other user's profile
+      const response = await instance.get(`/api/v1/user/profile/${targetUsername}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      
+      setProfileData(response.data.data);
+      setIsOwnProfile(false);
+    } catch (error) {
+      console.error("Error fetching profile by username:", error);
+      setError("User not found or profile is private");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Date picker functions
   const getDaysInMonth = (date: Date) => {
@@ -137,36 +220,6 @@ const Profile = () => {
     return isSameDay(date, new Date());
   };
 
-  const fetchProfileData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setError("No authentication token found. Please sign in.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await instance.get("/api/v1/user/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProfileData(response.data.data);
-      
-      // Initialize edit form with current data
-      setEditForm({
-        username: response.data.data.user.username,
-        email: response.data.data.user.email,
-        profilePicture: response.data.data.user.profilePicture
-      });
-    } catch (error) {
-      console.error("Error fetching profile data:", error);
-      setError("Failed to load profile data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchApiKey = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -203,27 +256,19 @@ const Profile = () => {
       setSaving(true);
       const token = localStorage.getItem('token');
       
-      if (!token) {
-        setError("No authentication token found.");
-        return;
-      }
-
       const response = await instance.put("/api/v1/user/profile", editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
+      
       if (response.data.success) {
-        // Update local state with new data
-        setProfileData(prev => prev ? {
-          ...prev,
-          user: {
-            ...prev.user,
-            ...editForm
-          }
-        } : null);
-        setShowEditModal(false);
         setSuccessMessage("Profile updated successfully!");
-        setTimeout(() => setSuccessMessage(null), 3000);
+        setShowEditModal(false);
+        // Refresh profile data
+        fetchOwnProfile();
+        // Update URL if username changed
+        if (editForm.username !== profileData?.user.username) {
+          navigate(`/@${editForm.username}`);
+        }
       }
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -233,420 +278,273 @@ const Profile = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    // Reset form to original data
-    if (profileData) {
-      setEditForm({
-        username: profileData.user.username,
-        email: profileData.user.email,
-        profilePicture: profileData.user.profilePicture
-      });
+  const handleGoToOwnProfile = () => {
+    if (currentUser) {
+      navigate(`/@${currentUser.username}`);
+    } else {
+      navigate('/profile');
     }
-    setShowEditModal(false);
-  };
-
-  // Mock function to get hours for a specific date
-  const getHoursForDate = (date: string) => {
-    // This would normally come from your backend
-    // For now, returning mock data based on the activity level
-    const activity = profileData?.activityCalendar.find(a => a.date === date);
-    if (activity) {
-      return activity.level * 2; // Mock: level 1 = 2 hours, level 2 = 4 hours, etc.
-    }
-    return 0;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins']">
-        <div className="text-white text-xl flex items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          Loading profile...
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <div className="flex">
+          <Vnavbar />
+          <div className="flex-1 p-8">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (error || !profileData) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins']">
-        <div className="text-white text-xl text-center">
-          <div className="mb-4">{error || "Failed to load profile"}</div>
-          <button 
-            onClick={() => window.location.href = '/signin'} 
-            className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200"
-          >
-            Go to Sign In
-          </button>
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <div className="flex">
+          <Vnavbar />
+          <div className="flex-1 p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-4">Failed to load profile data</h2>
+              <p className="text-gray-400 mb-6">{error}</p>
+              <button
+                onClick={handleGoToOwnProfile}
+                className="px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Go to My Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <div className="flex">
+          <Vnavbar />
+          <div className="flex-1 p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-4">Profile not found</h2>
+              <button
+                onClick={handleGoToOwnProfile}
+                className="px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Go to My Profile
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 font-['Poppins']">
-      <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
-      <div className="ml-[16.5rem] mr-1">
-        <Hnavbar className="mt-1" />
-        <main className="mt-1 ml-1 mr-1 p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Profile Header */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                <div className="relative">
+    <div className="min-h-screen bg-black font-['Poppins']">
+      <div className="flex">
+        <Vnavbar />
+        <div className="flex-1 p-8">
+          <Hnavbar />
+          
+          {/* Back Button for Other User's Profile */}
+          {!isOwnProfile && (
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-white hover:text-gray-300 mb-6 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              Back
+            </button>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+            {/* Profile Card */}
+            <div className="lg:col-span-1">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="text-center mb-6">
                   <img
                     src={profileData.user.profilePicture}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white/20"
-                    alt="Profile Picture"
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-white/20"
                   />
-                  <button className="absolute bottom-0 right-0 p-2 bg-white text-black rounded-full hover:bg-gray-200 transition-colors">
-                    <Edit className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-white mb-2">{profileData.user.username}</h1>
-                  <p className="text-gray-300 text-lg mb-4">@{profileData.user.username.toLowerCase().replace(/\s+/g, '')}</p>
+                  <h2 className="text-2xl font-bold text-white mb-2">{profileData.user.username}</h2>
                   <p className="text-gray-400">{profileData.user.email}</p>
-                </div>
-                <button 
-                  onClick={handleEditProfile}
-                  className="bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2"
-                >
-                  <Settings className="h-5 w-5" />
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-
-            {/* API Token Section */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <Key className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white">API Token</h3>
-              </div>
-              <p className="text-gray-300 mb-4">
-                Use this token in your VS Code extension to enable coding tracking.
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-white/5 rounded-lg p-3 border border-white/10">
-                  <code className="text-white font-mono text-sm break-all">
-                    {showApiKey ? (apiKey || "Loading...") : "••••••••••••••••••••"}
-                  </code>
-                </div>
-                <button 
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
-                >
-                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-                <button 
-                  onClick={copyToClipboard}
-                  className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Stats Cards */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* Date & Time Picker */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-semibold text-white mb-4">Date & Time Picker</h3>
                   
-                  {/* Time and Date Display */}
-                  <div className="bg-white/5 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-4">
-                      {/* Analog Clock */}
-                      <div className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                        <div className="absolute w-1 h-6 bg-black rounded-full transform -translate-y-3" 
-                             style={{ 
-                               transform: `rotate(${selectedTime.getHours() * 30 + selectedTime.getMinutes() * 0.5}deg) translateY(-3px)` 
-                             }}></div>
-                        <div className="absolute w-0.5 h-8 bg-blue-500 rounded-full transform -translate-y-4" 
-                             style={{ 
-                               transform: `rotate(${selectedTime.getMinutes() * 6}deg) translateY(-4px)` 
-                             }}></div>
-                        <div className="absolute w-1 h-1 bg-black rounded-full"></div>
-                        {/* Hour markers */}
-                        {[12, 3, 6, 9].map((hour, index) => (
-                          <div key={hour} className="absolute w-0.5 h-1 bg-black rounded-full"
-                               style={{
-                                 transform: `rotate(${hour * 30}deg) translateY(-8px)`
-                               }}></div>
-                        ))}
-                      </div>
-                      
-                      {/* Time and Date Text */}
-                      <div>
-                        <div className="text-2xl font-bold text-white">{formatTime(selectedTime)}</div>
-                        <div className="text-gray-300">{formatDate(selectedDate)}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Date Picker Toggle */}
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="w-full bg-white/10 text-white px-4 py-3 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Calendar className="h-5 w-5" />
-                    {showDatePicker ? 'Hide Calendar' : 'Show Calendar'}
-                  </button>
-
-                  {/* Calendar */}
-                  {showDatePicker && (
-                    <div className="mt-4 bg-white/5 rounded-xl p-4">
-                      {/* Calendar Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-medium text-white">
-                          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </h4>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => navigateMonth('prev')}
-                            className="p-1 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => navigateMonth('next')}
-                            className="p-1 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Days of Week */}
-                      <div className="grid grid-cols-7 gap-1 mb-2">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                          <div key={day} className="text-center text-sm text-gray-400 py-1">
-                            {day}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Calendar Grid */}
-                      <div className="grid grid-cols-7 gap-1">
-                        {getDaysInMonth(currentMonth).map((date, index) => (
-                          <button
-                            key={index}
-                            onClick={() => date && handleDateSelect(date)}
-                            disabled={!date}
-                            className={`
-                              w-8 h-8 rounded-lg text-sm font-medium transition-colors
-                              ${!date ? 'invisible' : ''}
-                              ${date && isSameDay(date, selectedDate) 
-                                ? 'bg-white text-black' 
-                                : date && isToday(date)
-                                ? 'bg-white/20 text-white border border-white/30'
-                                : 'text-white hover:bg-white/10'
-                              }
-                            `}
-                          >
-                            {date ? date.getDate() : ''}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Edit Button - Only show for own profile */}
+                  {isOwnProfile && (
+                    <button
+                      onClick={handleEditProfile}
+                      className="mt-4 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2 mx-auto"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Profile
+                    </button>
                   )}
-
-                  {/* Current Time Display */}
-                  <div className="mt-4 bg-white/5 rounded-xl p-4">
-                    <h4 className="text-lg font-medium text-white mb-3">Current Time</h4>
-                    <div className="flex gap-4">
-                      {/* Hours */}
-                      <div className="flex-1">
-                        <label className="block text-sm text-gray-300 mb-2">Hours</label>
-                        <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
-                          {selectedTime.getHours().toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                      
-                      {/* Minutes */}
-                      <div className="flex-1">
-                        <label className="block text-sm text-gray-300 mb-2">Minutes</label>
-                        <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
-                          {selectedTime.getMinutes().toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-semibold text-white mb-4">Quick Stats</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <Clock className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-gray-300">Weekly Hours</span>
-                      </div>
-                      <span className="text-white font-semibold">{profileData.stats.weeklyHours}h</span>
+                {/* API Key Section - Only show for own profile */}
+                {isOwnProfile && apiKey && (
+                  <div className="border-t border-white/10 pt-6">
+                    <h3 className="text-lg font-semibold text-white mb-3">API Key</h3>
+                    <div className="bg-white/5 rounded-lg p-3 flex items-center gap-2">
+                      <input
+                        type={showApiKey ? "text" : "password"}
+                        value={apiKey}
+                        readOnly
+                        className="flex-1 bg-transparent text-white text-sm"
+                      />
+                      <button
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      <button
+                        onClick={copyToClipboard}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
                     </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <Calendar className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-gray-300">Monthly Hours</span>
-                      </div>
-                      <span className="text-white font-semibold">{profileData.stats.monthlyHours}h</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <Code className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-gray-300">Total Activities</span>
-                      </div>
-                      <span className="text-white font-semibold">{profileData.stats.totalActivities}</span>
-                    </div>
+                    {copied && (
+                      <p className="text-green-400 text-sm mt-2">Copied to clipboard!</p>
+                    )}
                   </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
-                    {profileData.activityCalendar.slice(-5).reverse().map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${
-                            activity.level === 4 ? 'bg-white' : 
-                            activity.level === 3 ? 'bg-gray-400' : 
-                            activity.level === 2 ? 'bg-gray-500' : 'bg-gray-600'
-                          }`}></div>
-                          <span className="text-gray-300">{activity.date}</span>
-                        </div>
-                        <span className="text-white font-semibold">{activity.count} activities</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
+            </div>
 
-              {/* Activity Calendar */}
-              <div className="lg:col-span-2">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-semibold text-white mb-6">Activity Calendar</h3>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <ActivityCalendar 
-                      data={profileData.activityCalendar}
-                      theme={{
-                        light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                        dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                      }}
-                    />
-                    <div className="mt-4 text-center">
-                      <p className="text-gray-400 text-sm">
-                        Hover over green squares to see coding hours
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Custom Calendar with Hover Tooltips */}
-                  <div className="mt-6 bg-white/5 rounded-lg p-4">
-                    <h4 className="text-lg font-medium text-white mb-4">Detailed Activity</h4>
-                    <div className="grid grid-cols-7 gap-1">
-                      {profileData.activityCalendar.map((activity, index) => (
-                        <div
-                          key={index}
-                          className="relative group cursor-pointer"
-                        >
-                          <div
-                            className={`w-4 h-4 rounded-sm transition-all duration-200 ${
-                              activity.level === 4 ? 'bg-green-500' : 
-                              activity.level === 3 ? 'bg-green-400' : 
-                              activity.level === 2 ? 'bg-green-300' : 
-                              activity.level === 1 ? 'bg-green-200' : 'bg-gray-700'
-                            }`}
-                          />
-                          {/* Tooltip */}
-                          {activity.level > 0 && (
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                              {activity.date}: {getHoursForDate(activity.date)} hours
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+            {/* Activity Calendar */}
+            <div className="lg:col-span-2">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <h3 className="text-xl font-bold text-white mb-6">Activity Calendar</h3>
+                <ActivityCalendar
+                  data={profileData.activityCalendar}
+                  theme={{
+                    light: ['#1a1a1a', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                    dark: ['#1a1a1a', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                  }}
+                />
               </div>
             </div>
           </div>
-        </main>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Weekly Hours</h3>
+              </div>
+              <p className="text-3xl font-bold text-white">{profileData.stats.weeklyHours}h</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Code className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Monthly Hours</h3>
+              </div>
+              <p className="text-3xl font-bold text-white">{profileData.stats.monthlyHours}h</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Total Activities</h3>
+              </div>
+              <p className="text-3xl font-bold text-white">{profileData.stats.totalActivities}</p>
+            </div>
+          </div>
+
+          {/* Current Time Display - Only show for own profile */}
+          {isOwnProfile && (
+            <div className="mt-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <h3 className="text-xl font-bold text-white mb-4">Current Time</h3>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm text-gray-300 mb-2">Hours</label>
+                    <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
+                      {selectedTime.getHours().toString().padStart(2, '0')}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm text-gray-300 mb-2">Minutes</label>
+                    <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
+                      {selectedTime.getMinutes().toString().padStart(2, '0')}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <p className="text-white text-lg">{formatDate(selectedTime)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Edit Profile Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Edit Profile</h3>
-              <button 
-                onClick={handleCancelEdit}
-                className="text-gray-400 hover:text-white transition-colors"
+      {/* Edit Profile Modal - Only for own profile */}
+      {isOwnProfile && showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-black/90 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white">Edit Profile</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Username
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Username</label>
                 <input
                   type="text"
                   value={editForm.username}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  placeholder="Enter username"
+                  onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   disabled
-                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-gray-400 cursor-not-allowed opacity-50"
-                  placeholder="Email cannot be changed"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-gray-400 cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-500 mt-1">Email address cannot be modified for security reasons</p>
+                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Profile Picture URL
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Profile Picture URL</label>
                 <input
                   type="url"
                   value={editForm.profilePicture}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, profilePicture: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  placeholder="Enter profile picture URL"
+                  onChange={(e) => setEditForm({...editForm, profilePicture: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white"
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
-                onClick={handleCancelEdit}
+                onClick={() => setShowEditModal(false)}
                 className="flex-1 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
               >
                 Cancel
@@ -654,29 +552,12 @@ const Profile = () => {
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="flex-1 px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
-                {saving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </>
-                )}
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg z-50">
-          {successMessage}
         </div>
       )}
     </div>

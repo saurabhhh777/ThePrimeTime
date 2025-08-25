@@ -27,6 +27,7 @@ const App = () => {
         <Route path="/api-docs" element={<ApiDocs />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/@:username" element={<Profile />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="*" element={<ErrorPage />} />
