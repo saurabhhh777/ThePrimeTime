@@ -33,12 +33,26 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token found in localStorage');
+        return;
+      }
+
+      console.log('Fetching stats with token:', token.substring(0, 20) + '...');
+      
       const response = await instance.get(`/api/v1/coding-stats/stats?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('Stats response:', response.data);
       setStats(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching stats:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -47,12 +61,24 @@ const Dashboard = () => {
   const fetchSubscription = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token found for subscription fetch');
+        return;
+      }
+
       const response = await instance.get('/api/v1/subscription/user', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('Subscription response:', response.data);
       setSubscription(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching subscription:', error);
+      if (error.response) {
+        console.error('Subscription response data:', error.response.data);
+        console.error('Subscription response status:', error.response.status);
+      }
     }
   };
 
@@ -87,17 +113,17 @@ const Dashboard = () => {
 
   const getSubscriptionColor = (type: string) => {
     switch (type) {
-      case 'FREE': return 'bg-gradient-to-r from-gray-500 to-gray-600';
-      case 'BASIC': return 'bg-gradient-to-r from-blue-500 to-blue-600';
-      case 'PRO': return 'bg-gradient-to-r from-purple-500 to-purple-600';
-      case 'ENTERPRISE': return 'bg-gradient-to-r from-yellow-500 to-yellow-600';
-      default: return 'bg-gradient-to-r from-gray-500 to-gray-600';
+      case 'FREE': return 'bg-gray-600 text-white';
+      case 'BASIC': return 'bg-blue-600 text-white';
+      case 'PRO': return 'bg-black text-white';
+      case 'ENTERPRISE': return 'bg-gray-800 text-white';
+      default: return 'bg-gray-600 text-white';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins']">
         <div className="text-white text-xl flex items-center gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
           Loading your coding analytics...
@@ -107,7 +133,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 font-['Poppins']">
       <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
       <div className="ml-[16.5rem] mr-1">
         <Hnavbar className="mt-1" />
@@ -122,14 +148,14 @@ const Dashboard = () => {
               <select 
                 value={period} 
                 onChange={(e) => setPeriod(e.target.value)}
-                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
+                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-white text-white backdrop-blur-sm"
               >
                 <option value="30days">Last 30 Days</option>
                 <option value="3months">Last 3 Months</option>
                 <option value="yearly">Last Year</option>
               </select>
               {subscription && (
-                <div className={`px-4 py-2 rounded-full text-white text-sm font-medium ${getSubscriptionColor(subscription.subscriptionType)} backdrop-blur-sm`}>
+                <div className={`px-4 py-2 rounded-full text-sm font-medium ${getSubscriptionColor(subscription.subscriptionType)} backdrop-blur-sm`}>
                   {subscription.subscriptionType}
                 </div>
               )}
@@ -139,7 +165,7 @@ const Dashboard = () => {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-gray-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Total Coding Time</p>
@@ -147,14 +173,14 @@ const Dashboard = () => {
                     {stats ? formatDuration(stats.summary.totalDuration) : '0h 0m'}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Clock className="h-8 w-8 text-blue-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Clock className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-gray-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Coding Sessions</p>
@@ -162,14 +188,14 @@ const Dashboard = () => {
                     {stats ? stats.summary.totalSessions : 0}
                   </p>
                 </div>
-                <div className="p-3 bg-green-500/20 rounded-xl">
-                  <Code className="h-8 w-8 text-green-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Code className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-gray-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Lines Changed</p>
@@ -177,14 +203,14 @@ const Dashboard = () => {
                     {stats ? stats.summary.totalLinesChanged.toLocaleString() : 0}
                   </p>
                 </div>
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <FileText className="h-8 w-8 text-purple-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <FileText className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-gray-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Characters Typed</p>
@@ -192,8 +218,8 @@ const Dashboard = () => {
                     {stats ? stats.summary.totalCharactersTyped.toLocaleString() : 0}
                   </p>
                 </div>
-                <div className="p-3 bg-orange-500/20 rounded-xl">
-                  <BarChart3 className="h-8 w-8 text-orange-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <BarChart3 className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
@@ -204,8 +230,8 @@ const Dashboard = () => {
             {/* Top Languages */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Activity className="h-6 w-6 text-blue-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Activity className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Top Programming Languages</h3>
               </div>
@@ -213,7 +239,7 @@ const Dashboard = () => {
                 {getTopLanguages().map(([language, data], index) => (
                   <div key={language} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
+                      <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-white' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-gray-500' : 'bg-gray-600'}`}></div>
                       <span className="font-medium text-white">{language}</span>
                     </div>
                     <div className="text-right">
@@ -228,8 +254,8 @@ const Dashboard = () => {
             {/* Top Folders */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Target className="h-6 w-6 text-green-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Most Active Folders</h3>
               </div>
@@ -237,7 +263,7 @@ const Dashboard = () => {
                 {getTopFolders().map(([folder, data], index) => (
                   <div key={folder} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-green-400'}`}></div>
+                      <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-white' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-gray-500' : 'bg-gray-600'}`}></div>
                       <span className="font-medium text-white">{folder}</span>
                     </div>
                     <div className="text-right">
@@ -253,8 +279,8 @@ const Dashboard = () => {
           {/* Recent Activity */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Award className="h-6 w-6 text-purple-400" />
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Award className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-white">Recent Coding Sessions</h3>
             </div>
@@ -262,7 +288,7 @@ const Dashboard = () => {
               {stats?.codingStats.slice(0, 10).map((session, index) => (
                 <div key={index} className="flex items-center justify-between py-3 px-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
                     <div>
                       <div className="font-medium text-white">{session.fileName}</div>
                       <div className="text-sm text-gray-400">{session.language} • {session.folder}</div>
@@ -281,13 +307,13 @@ const Dashboard = () => {
 
           {/* Subscription Upgrade Banner */}
           {subscription?.subscriptionType === 'FREE' && (
-            <div className="mt-6 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="mt-6 bg-gradient-to-r from-white/10 to-gray-500/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-white mb-2">Upgrade to Pro</h3>
                   <p className="text-gray-300">Get access to unlimited data history, custom date ranges, and advanced analytics.</p>
                 </div>
-                <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
+                <button className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300 transform hover:scale-105">
                   Upgrade Now
                 </button>
               </div>

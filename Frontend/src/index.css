@@ -10,6 +10,14 @@
     --font-jost: "Jost", "sans-serif";
     --font-anton: "Anton", "sans-serif";
   }
+  
+  * {
+    font-family: var(--font-poppins);
+  }
+  
+  body {
+    font-family: var(--font-poppins);
+  }
 }
 
 

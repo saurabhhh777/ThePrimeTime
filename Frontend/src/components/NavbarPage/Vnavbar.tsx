@@ -8,12 +8,12 @@ interface VnavbarProps {
 
 const Vnavbar: React.FC<VnavbarProps> = ({ className }) => {
   return (
-    <div className={`flex flex-col justify-between bg-black w-64 p-6 rounded-lg ${className || ''}`}>
+    <div className={`flex flex-col justify-between bg-black w-64 p-6 rounded-lg font-['Poppins'] ${className || ''}`}>
         <div className="space-y-6">
             <h2>
                 <a href="/" className="flex items-center gap-2">
                     <Timer className='text-white text-2xl'/>
-                    <h2 className="text-white text-xl font-bold font-poppins">ThePrimeTime</h2>
+                    <h2 className="text-white text-xl font-bold">ThePrimeTime</h2>
                 </a>
             </h2>
             <hr className='border-gray-700'/>

@@ -8,7 +8,7 @@ interface HnavbarProps {
 
 const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
   return (
-    <span className={`flex justify-between items-center bg-black text-white rounded-lg p-4 ${className || ''}`}>
+    <span className={`flex justify-between items-center bg-black text-white rounded-lg p-4 font-['Poppins'] ${className || ''}`}>
       <div className='flex items-center gap-4'>
         <h2>
             <Link to="/">
