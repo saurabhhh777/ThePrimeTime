@@ -216,31 +216,95 @@ const Projects = () => {
   };
 
   const getTopLanguages = () => {
-    if (!codingStats?.languageStats) return [];
-    return Object.entries(codingStats.languageStats)
-      .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
-      .slice(0, 5)
-      .map(([language, data]) => ({
-        language,
-        duration: data.duration || 0,
-        files: data.files || 0,
-        percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
-        hours: (data.duration || 0) / (1000 * 60 * 60)
-      }));
+    // First try to get from real-time updates
+    if (realTimeUpdates.length > 0) {
+      const languageMap = new Map<string, { duration: number, files: number }>();
+      
+      realTimeUpdates.forEach(update => {
+        if (update.language) {
+          const existing = languageMap.get(update.language) || { duration: 0, files: 1 };
+          existing.duration += update.duration || 0;
+          existing.files = Math.max(existing.files, 1);
+          languageMap.set(update.language, existing);
+        }
+      });
+      
+      if (languageMap.size > 0) {
+        return Array.from(languageMap.entries())
+          .sort(([, a], [, b]) => b.duration - a.duration)
+          .slice(0, 5)
+          .map(([language, data]) => ({
+            language,
+            duration: data.duration,
+            files: data.files,
+            percentage: ((data.duration) / (liveStats.totalDuration || 1)) * 100,
+            hours: data.duration / (1000 * 60 * 60)
+          }));
+      }
+    }
+    
+    // Fallback to codingStats if available
+    if (codingStats?.languageStats) {
+      return Object.entries(codingStats.languageStats)
+        .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
+        .slice(0, 5)
+        .map(([language, data]) => ({
+          language,
+          duration: data.duration || 0,
+          files: data.files || 0,
+          percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
+          hours: (data.duration || 0) / (1000 * 60 * 60)
+        }));
+    }
+    
+    return [];
   };
 
   const getTopFolders = () => {
-    if (!codingStats?.folderStats) return [];
-    return Object.entries(codingStats.folderStats)
-      .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
-      .slice(0, 5)
-      .map(([folder, data]) => ({
-        folder,
-        duration: data.duration || 0,
-        files: data.files || 0,
-        percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
-        hours: (data.duration || 0) / (1000 * 60 * 60)
-      }));
+    // First try to get from real-time updates
+    if (realTimeUpdates.length > 0) {
+      const folderMap = new Map<string, { duration: number, files: number }>();
+      
+      realTimeUpdates.forEach(update => {
+        if (update.fileName) {
+          // Extract folder from file path
+          const folder = update.fileName.split('/').slice(0, -1).join('/') || 'Root';
+          const existing = folderMap.get(folder) || { duration: 0, files: 1 };
+          existing.duration += update.duration || 0;
+          existing.files = Math.max(existing.files, 1);
+          folderMap.set(folder, existing);
+        }
+      });
+      
+      if (folderMap.size > 0) {
+        return Array.from(folderMap.entries())
+          .sort(([, a], [, b]) => b.duration - a.duration)
+          .slice(0, 5)
+          .map(([folder, data]) => ({
+            folder,
+            duration: data.duration,
+            files: data.files,
+            percentage: ((data.duration) / (liveStats.totalDuration || 1)) * 100,
+            hours: data.duration / (1000 * 60 * 60)
+          }));
+      }
+    }
+    
+    // Fallback to codingStats if available
+    if (codingStats?.folderStats) {
+      return Object.entries(codingStats.folderStats)
+        .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
+        .slice(0, 5)
+        .map(([folder, data]) => ({
+          folder,
+          duration: data.duration || 0,
+          files: data.files || 0,
+          percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
+          hours: (data.duration || 0) / (1000 * 60 * 60)
+        }));
+    }
+    
+    return [];
   };
 
   const renderBarChart = (data: any[], title: string, color: string) => {
@@ -448,6 +512,26 @@ const Projects = () => {
             </div>
           )}
 
+          {/* Debug: Real-time Data */}
+          {realTimeUpdates.length > 0 && (
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+              <h3 className="text-white font-bold mb-2">🔍 Debug: Real-time Data Received:</h3>
+              <div className="text-white text-sm space-y-2">
+                <div>Total Updates: <span className="font-semibold text-yellow-400">{realTimeUpdates.length}</span></div>
+                <div>Languages Found: <span className="font-semibold text-yellow-400">{getTopLanguages().length}</span></div>
+                <div>Folders Found: <span className="font-semibold text-yellow-400">{getTopFolders().length}</span></div>
+                <div className="mt-3">
+                  <div className="font-semibold mb-2">Latest Update Data:</div>
+                  <div className="bg-black/30 p-3 rounded text-xs space-y-1">
+                    <pre className="text-green-400 overflow-x-auto">
+                      {JSON.stringify(realTimeUpdates[realTimeUpdates.length - 1], null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* VS Code Analytics Summary */}
           {(codingStats || liveStats.totalDuration > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -571,7 +655,7 @@ const Projects = () => {
           )}
 
           {/* Language and Folder Analytics */}
-          {codingStats && (
+          {(codingStats || realTimeUpdates.length > 0) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
@@ -579,6 +663,9 @@ const Projects = () => {
                     <Code className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white">Top Languages</h3>
+                  {realTimeUpdates.length > 0 && (
+                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">🟢 Live</span>
+                  )}
                 </div>
                 {renderBarChart(topLanguages, 'Languages', 'bg-green-500')}
               </div>
@@ -589,6 +676,9 @@ const Projects = () => {
                     <Folder className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white">Top Folders</h3>
+                  {realTimeUpdates.length > 0 && (
+                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">🟢 Live</span>
+                  )}
                 </div>
                 {renderBarChart(topFolders, 'Folders', 'bg-purple-500')}
               </div>
