@@ -42,11 +42,13 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
       
       if (response.data.success) {
         const userData = response.data.data.user;
+        console.log('Fetched user profile data:', userData);
         setCurrentUser((prev: any) => ({
           ...prev,
           username: userData.username,
           email: userData.email
         }));
+        console.log('Updated currentUser with username:', userData.username);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -103,9 +105,12 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
   const getProfileLink = () => {
     // Try to get username from currentUser state (which now includes fetched profile data)
     if (currentUser && currentUser.username) {
-      return `/@${currentUser.username}`;
+      const profileLink = `/@${currentUser.username}`;
+      console.log('Generated profile link:', profileLink);
+      return profileLink;
     }
     
+    console.log('No username found, using fallback /profile');
     // If no username in state, return profile as fallback
     return '/profile';
   };

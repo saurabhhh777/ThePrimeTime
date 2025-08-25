@@ -114,25 +114,44 @@ const Profile = () => {
   const fetchProfileByUsername = async (targetUsername: string) => {
     try {
       setLoading(true);
+      console.log('Fetching profile for username:', targetUsername);
+      
       const token = localStorage.getItem('token');
       
       // Check if this is the current user's profile
       if (currentUser && currentUser.username === targetUsername) {
+        console.log('This is the current user\'s profile, fetching own profile');
         setIsOwnProfile(true);
         fetchOwnProfile();
         return;
       }
 
+      console.log('Fetching other user\'s profile from API');
+      
       // Fetch other user's profile
       const response = await instance.get(`/api/v1/user/profile/${targetUsername}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
-      setProfileData(response.data.data);
-      setIsOwnProfile(false);
-    } catch (error) {
+      console.log('Profile API response:', response.data);
+      
+      if (response.data.success) {
+        setProfileData(response.data.data);
+        setIsOwnProfile(false);
+      } else {
+        setError(response.data.message || "Failed to load profile");
+      }
+    } catch (error: any) {
       console.error("Error fetching profile by username:", error);
-      setError("User not found or profile is private");
+      console.error("Error response:", error.response?.data);
+      
+      if (error.response?.status === 404) {
+        setError("User not found. The profile you're looking for doesn't exist.");
+      } else if (error.response?.status === 401) {
+        setError("Authentication required to view this profile.");
+      } else {
+        setError("Failed to load profile. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
