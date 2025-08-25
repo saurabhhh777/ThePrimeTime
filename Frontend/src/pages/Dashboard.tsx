@@ -3,6 +3,7 @@ import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from '../../lib/axios';
 import { Clock, Code, FileText, BarChart3, Calendar, TrendingUp, Zap, Crown, Activity, Target, Award } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
 
 interface CodingStats {
   codingStats: any[];
@@ -38,11 +39,54 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30days');
   const [subscription, setSubscription] = useState<any>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [realTimeUpdates, setRealTimeUpdates] = useState<any[]>([]);
 
   useEffect(() => {
     fetchStats();
     fetchSubscription();
+    initializeWebSocket();
   }, [period]);
+
+  const initializeWebSocket = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const socket = io('http://localhost:7000', {
+        transports: ['websocket', 'polling']
+      });
+
+      socket.on('connect', () => {
+        console.log('🔌 Frontend WebSocket connected');
+      });
+
+      socket.on('coding_update', (data: any) => {
+        console.log('📊 Real-time coding update received:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+        
+        // Refresh stats when new data arrives
+        fetchStats();
+      });
+
+      socket.on('session_update', (data: any) => {
+        console.log('🔄 Real-time session update received:', data);
+        setRealTimeUpdates(prev => [...prev, data]);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('🔌 Frontend WebSocket disconnected');
+      });
+
+      setSocket(socket);
+
+      return () => {
+        socket.disconnect();
+      };
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -204,6 +248,23 @@ const Dashboard = () => {
               <div>Dashboard Data: {dashboardData ? '✅ Loaded' : '❌ Not loaded'}</div>
               <div>Stats Summary: {stats?.summary ? JSON.stringify(stats.summary) : 'No summary'}</div>
               <div>Dashboard IDE Stats: {dashboardData?.ide_stats ? JSON.stringify(dashboardData.ide_stats) : 'No IDE stats'}</div>
+            </div>
+          </div>
+
+          {/* Real-time Updates Section */}
+          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <h3 className="text-white font-bold mb-2">Real-time Updates:</h3>
+            <div className="text-white text-sm space-y-1">
+              <div>WebSocket Status: {socket ? '✅ Connected' : '❌ Disconnected'}</div>
+              <div>Real-time Updates: {realTimeUpdates.length} received</div>
+              {realTimeUpdates.length > 0 && (
+                <div className="mt-2">
+                  <div className="font-semibold">Latest Update:</div>
+                  <div className="bg-black/30 p-2 rounded text-xs">
+                    {JSON.stringify(realTimeUpdates[realTimeUpdates.length - 1], null, 2)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { io, Socket } from 'socket.io-client';
 
 interface CodingSession {
     startTime: Date;
@@ -26,11 +27,13 @@ export class CodingTracker {
     private currentSession: CodingSession | null = null;
     private token: string = '';
     private apiUrl: string = 'http://localhost:7000'; // Fixed port to 7000
+    private socket: Socket | null = null;
     private isTracking: boolean = false;
     private lastSaveTime: Date = new Date();
     private linesChanged: number = 0;
     private charactersTyped: number = 0;
     private changeListener: vscode.TextDocumentChangeEvent | null = null;
+    private realTimeInterval: NodeJS.Timeout | null = null;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -51,6 +54,56 @@ export class CodingTracker {
         this.token = token;
         this.context.globalState.update('primeTimeToken', token);
         vscode.window.showInformationMessage('Prime Time token updated successfully!');
+        
+        // Initialize WebSocket connection when token is set
+        this.initializeWebSocket();
+    }
+
+    private initializeWebSocket() {
+        if (!this.token) return;
+
+        try {
+            // Connect to WebSocket server
+            this.socket = io(this.apiUrl, {
+                transports: ['websocket', 'polling']
+            });
+
+            this.socket.on('connect', () => {
+                console.log('🔌 WebSocket connected');
+                vscode.window.showInformationMessage('Prime Time real-time connection established!');
+                
+                // Authenticate with the server
+                this.socket?.emit('authenticate', { token: this.token });
+            });
+
+            this.socket.on('authenticated', (data) => {
+                console.log('✅ WebSocket authenticated:', data);
+                vscode.window.showInformationMessage('Prime Time real-time tracking activated!');
+            });
+
+            this.socket.on('auth_error', (error) => {
+                console.error('❌ WebSocket auth error:', error);
+                vscode.window.showErrorMessage('Prime Time authentication failed. Check your token.');
+            });
+
+            this.socket.on('data_received', (response) => {
+                console.log('✅ Real-time data received:', response);
+            });
+
+            this.socket.on('error', (error) => {
+                console.error('❌ WebSocket error:', error);
+                vscode.window.showErrorMessage('Prime Time real-time connection error.');
+            });
+
+            this.socket.on('disconnect', () => {
+                console.log('🔌 WebSocket disconnected');
+                vscode.window.showInformationMessage('Prime Time real-time connection lost.');
+            });
+
+        } catch (error) {
+            console.error('❌ Failed to initialize WebSocket:', error);
+            vscode.window.showErrorMessage('Failed to establish real-time connection.');
+        }
     }
 
     public startTracking() {
@@ -79,12 +132,52 @@ export class CodingTracker {
             this.startSession(activeEditor.document);
         }
 
-        vscode.window.showInformationMessage('Prime Time tracking started!');
+        // Start real-time updates
+        this.startRealTimeUpdates();
+
+        vscode.window.showInformationMessage('Prime Time tracking started with real-time updates!');
+    }
+
+    private startRealTimeUpdates() {
+        // Send real-time updates every 30 seconds
+        this.realTimeInterval = setInterval(() => {
+            if (this.currentSession && this.currentSession.isActive && this.socket) {
+                const currentTime = new Date();
+                const duration = currentTime.getTime() - this.currentSession.startTime.getTime();
+                
+                const realTimeData = {
+                    fileName: this.getFileNameFromPath(this.currentSession.currentFile),
+                    filePath: this.currentSession.currentFile,
+                    language: this.currentSession.language,
+                    folder: this.currentSession.folder,
+                    duration: duration,
+                    linesChanged: this.linesChanged,
+                    charactersTyped: this.charactersTyped,
+                    isActive: true
+                };
+
+                this.socket.emit('session_update', realTimeData);
+                console.log('🔄 Real-time update sent:', realTimeData);
+            }
+        }, 30000); // 30 seconds
     }
 
     public stopTracking() {
         this.isTracking = false;
         this.endCurrentSession();
+        
+        // Stop real-time updates
+        if (this.realTimeInterval) {
+            clearInterval(this.realTimeInterval);
+            this.realTimeInterval = null;
+        }
+
+        // Disconnect WebSocket
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
+
         vscode.window.showInformationMessage('Prime Time tracking stopped!');
     }
 
@@ -109,6 +202,9 @@ export class CodingTracker {
             this.currentSession.language = document.languageId;
             this.currentSession.folder = this.getFolderFromPath(document.fileName);
         }
+
+        // Send immediate update via WebSocket
+        this.sendRealTimeUpdate();
     }
 
     private handleEditorChange(editor: vscode.TextEditor | undefined) {
@@ -126,6 +222,29 @@ export class CodingTracker {
 
         this.linesChanged++;
         this.lastSaveTime = new Date();
+        
+        // Send save event via WebSocket
+        this.sendRealTimeUpdate();
+    }
+
+    private sendRealTimeUpdate() {
+        if (!this.currentSession || !this.currentSession.isActive || !this.socket) return;
+
+        const currentTime = new Date();
+        const duration = currentTime.getTime() - this.currentSession.startTime.getTime();
+
+        const realTimeData = {
+            fileName: this.getFileNameFromPath(this.currentSession.currentFile),
+            filePath: this.currentSession.currentFile,
+            language: this.currentSession.language,
+            folder: this.currentSession.folder,
+            duration: duration,
+            linesChanged: this.linesChanged,
+            charactersTyped: this.charactersTyped,
+            isActive: true
+        };
+
+        this.socket.emit('coding_data', realTimeData);
     }
 
     private startSession(document: vscode.TextDocument) {
@@ -140,6 +259,9 @@ export class CodingTracker {
             folder: this.getFolderFromPath(document.fileName),
             isActive: true
         };
+
+        // Send session start via WebSocket
+        this.sendRealTimeUpdate();
     }
 
     private endCurrentSession() {
@@ -149,8 +271,26 @@ export class CodingTracker {
         const duration = endTime.getTime() - this.currentSession.startTime.getTime();
 
         if (duration > 0) {
+            // Send final session data via WebSocket
+            if (this.socket) {
+                const finalData = {
+                    fileName: this.getFileNameFromPath(this.currentSession.currentFile),
+                    filePath: this.currentSession.currentFile,
+                    language: this.currentSession.language,
+                    folder: this.currentSession.folder,
+                    duration: duration,
+                    linesChanged: this.linesChanged,
+                    charactersTyped: this.charactersTyped,
+                    isActive: false
+                };
+
+                this.socket.emit('coding_data', finalData);
+                console.log('📊 Final session data sent:', finalData);
+            }
+
+            // Also send via HTTP as backup
             this.sendCodingData({
-                userId: this.token, // Using token as userId for now
+                userId: this.token,
                 timestamp: this.currentSession.startTime,
                 fileName: this.getFileNameFromPath(this.currentSession.currentFile),
                 filePath: this.currentSession.currentFile,
