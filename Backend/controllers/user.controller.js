@@ -8,7 +8,7 @@ import billingModel from "../models/billing.model.js";
 import notificationsModel from "../models/notifications.model.js";
 import preferencesModel from "../models/preferences.model.js";
 import leaderModel from "../models/leader.model.js";
-import { sendOTPToMail } from "../middlewares/SendOTPToMail.js";
+import { sendOTPToEmail } from "../middlewares/SendOTPToMail.js";
 dotenv.config();
 
 const prisma = new PrismaClient();
@@ -81,8 +81,30 @@ export const sendSignupOTP = async (req, res) => {
       createdAt: Date.now()
     });
 
+    // Check if email credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log("Email credentials not configured, using mock OTP");
+      // For development, just return success without sending email
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent to your email (Development mode - check console for OTP)",
+        email: email,
+        otp: otp // Only in development
+      });
+    }
+
     // Send OTP via email
-    await sendOTPToMail(email, otp, "Account Creation OTP");
+    try {
+      await sendOTPToEmail(email, otp, "Account Creation OTP");
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+      // Remove the stored OTP data since email failed
+      otpStore.delete(email);
+      return res.status(500).json({
+        message: "Failed to send OTP. Please check your email address and try again.",
+        success: false
+      });
+    }
 
     return res.status(200).json({
       success: true,

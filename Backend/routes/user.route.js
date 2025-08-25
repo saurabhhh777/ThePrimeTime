@@ -5,6 +5,7 @@ import {
   Signin, 
   Logout, 
   Dashboard, 
+  getProfile,
   updateProfile,
   getUserSettings,
   updateUserSettings,
@@ -28,6 +29,7 @@ router.post("/verify-signup-otp", verifySignupOTP);
 
 // Protected routes
 router.route("/dashboard").get(isAuth, Dashboard);
+router.route("/profile").get(isAuth, getProfile);
 router.route("/profile").put(isAuth, updateProfile);
 router.route("/settings").get(isAuth, getUserSettings);
 router.route("/settings").put(isAuth, updateUserSettings);
