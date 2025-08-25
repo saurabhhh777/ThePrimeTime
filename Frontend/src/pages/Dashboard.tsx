@@ -18,8 +18,23 @@ interface CodingStats {
   userSubscription: string;
 }
 
+interface DashboardData {
+  ide_stats: {
+    totalTime: number;
+    sessions: number;
+    projects: any[];
+  };
+  git_stats: {
+    commits: number;
+    repositories: any[];
+    contributions: any[];
+  };
+  lastUpdated: string;
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState<CodingStats | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30days');
   const [subscription, setSubscription] = useState<any>(null);
@@ -55,7 +70,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Dashboard response:', dashboardResponse.data);
-        // You can add dashboard-specific state here if needed
+        setDashboardData(dashboardResponse.data.data);
       } catch (dashboardError) {
         console.log('Dashboard API not available, using coding stats only');
       }
@@ -181,6 +196,17 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Debug Section - Temporary */}
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
+            <h3 className="text-white font-bold mb-2">Debug Info:</h3>
+            <div className="text-white text-sm space-y-1">
+              <div>Stats Data: {stats ? '✅ Loaded' : '❌ Not loaded'}</div>
+              <div>Dashboard Data: {dashboardData ? '✅ Loaded' : '❌ Not loaded'}</div>
+              <div>Stats Summary: {stats?.summary ? JSON.stringify(stats.summary) : 'No summary'}</div>
+              <div>Dashboard IDE Stats: {dashboardData?.ide_stats ? JSON.stringify(dashboardData.ide_stats) : 'No IDE stats'}</div>
+            </div>
+          </div>
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
@@ -189,7 +215,8 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Total Coding Time</p>
                   <p className="text-3xl font-bold text-white">
-                    {stats ? formatDuration(stats.summary.totalDuration) : '0h 0m'}
+                    {stats ? formatDuration(stats.summary.totalDuration) : 
+                     dashboardData ? formatDuration(dashboardData.ide_stats.totalTime) : '0h 0m'}
                   </p>
                 </div>
                 <div className="p-3 bg-white/20 rounded-xl">
@@ -204,7 +231,8 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Coding Sessions</p>
                   <p className="text-3xl font-bold text-white">
-                    {stats ? stats.summary.totalSessions : 0}
+                    {stats ? stats.summary.totalSessions : 
+                     dashboardData ? dashboardData.ide_stats.sessions : 0}
                   </p>
                 </div>
                 <div className="p-3 bg-white/20 rounded-xl">
