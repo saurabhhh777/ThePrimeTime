@@ -51,7 +51,7 @@ export const submitCodingStats = async (req, res) => {
 // Get user's coding statistics with date filtering
 export const getCodingStats = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
         const { startDate, endDate, period } = req.query;
 
         let whereClause = { userId };
@@ -99,7 +99,7 @@ export const getCodingStats = async (req, res) => {
         });
 
         // For free users, limit to 30 days regardless of requested period
-        if (user.subscriptionType === 'FREE' && period !== '30days' && (!startDate || !endDate)) {
+        if (user && user.subscriptionType === 'FREE' && period !== '30days' && (!startDate || !endDate)) {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             whereClause.timestamp = {
@@ -164,7 +164,7 @@ export const getCodingStats = async (req, res) => {
                 },
                 languageStats,
                 folderStats,
-                userSubscription: user.subscriptionType
+                userSubscription: user ? user.subscriptionType : 'FREE'
             }
         });
     } catch (error) {
@@ -176,7 +176,7 @@ export const getCodingStats = async (req, res) => {
 // Get coding statistics by language
 export const getLanguageStats = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
         const { period } = req.query;
 
         let dateFilter = {};
@@ -226,7 +226,7 @@ export const getLanguageStats = async (req, res) => {
 // Get daily coding activity
 export const getDailyActivity = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
         const { days = 30 } = req.query;
 
         const startDate = new Date();

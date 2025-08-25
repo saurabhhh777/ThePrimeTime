@@ -83,7 +83,7 @@ export const getSubscriptionPlans = async (req, res) => {
 // Get user's current subscription
 export const getUserSubscription = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -120,7 +120,7 @@ export const getUserSubscription = async (req, res) => {
 // Update user subscription (simplified - in real app, integrate with payment processor)
 export const updateSubscription = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
         const { subscriptionType, paymentMethod } = req.body;
 
         // Validate subscription type
@@ -172,7 +172,7 @@ export const updateSubscription = async (req, res) => {
 // Cancel subscription
 export const cancelSubscription = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
@@ -200,7 +200,7 @@ export const cancelSubscription = async (req, res) => {
 // Get subscription usage statistics
 export const getSubscriptionUsage = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id.toString(); // Convert MongoDB ObjectId to string
 
         const user = await prisma.user.findUnique({
             where: { id: userId },

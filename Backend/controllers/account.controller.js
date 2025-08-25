@@ -160,6 +160,36 @@ export const updateGithubUserId = async (req,res)=>{
 
 
 
+// Get API key
+export const getApiKey = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        
+        const account = await accountModel.findOne({ user: userId });
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: "Account details not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                apiKey: account.secret_api_key
+            },
+            message: "API key retrieved successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 // Update API key
 export const updateApiKey = async (req, res) => {
     try {

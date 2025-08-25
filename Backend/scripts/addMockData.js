@@ -11,11 +11,34 @@ async function addMockCodingStats() {
       return;
     }
 
-    const userId = "68a96271f0ee56930c461634"; // Use the new user ID
+    const userId = user.id; // Use the first user's ID dynamically
     console.log(`Adding mock data for user: ${userId}`);
 
     // Mock coding stats data
     const mockStats = [
+      // Recent data (last 7 days)
+      {
+        userId,
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        fileName: 'Dashboard.tsx',
+        filePath: '/src/pages',
+        language: 'TypeScript',
+        folder: '/src/pages',
+        duration: 45 * 60 * 1000, // 45 minutes
+        linesChanged: 120,
+        charactersTyped: 3500
+      },
+      {
+        userId,
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+        fileName: 'Profile.tsx',
+        filePath: '/src/pages',
+        language: 'TypeScript',
+        folder: '/src/pages',
+        duration: 90 * 60 * 1000, // 1.5 hours
+        linesChanged: 200,
+        charactersTyped: 6000
+      },
       {
         userId,
         timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
@@ -92,6 +115,40 @@ async function addMockCodingStats() {
         duration: 3.5 * 60 * 60 * 1000, // 3.5 hours
         linesChanged: 250,
         charactersTyped: 9000
+      },
+      // Additional data for variety
+      {
+        userId,
+        timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+        fileName: 'config.py',
+        filePath: '/backend/config',
+        language: 'Python',
+        folder: '/backend/config',
+        duration: 1.8 * 60 * 60 * 1000, // 1.8 hours
+        linesChanged: 95,
+        charactersTyped: 3200
+      },
+      {
+        userId,
+        timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
+        fileName: 'schema.prisma',
+        filePath: '/backend/prisma',
+        language: 'Prisma',
+        folder: '/backend/prisma',
+        duration: 2.2 * 60 * 60 * 1000, // 2.2 hours
+        linesChanged: 140,
+        charactersTyped: 4500
+      },
+      {
+        userId,
+        timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+        fileName: 'package.json',
+        filePath: '/frontend',
+        language: 'JSON',
+        folder: '/frontend',
+        duration: 30 * 60 * 1000, // 30 minutes
+        linesChanged: 25,
+        charactersTyped: 800
       }
     ];
 

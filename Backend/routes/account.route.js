@@ -5,6 +5,7 @@ import {
     updatePrimaryEmail,
     updateBackupEmail,
     updateGithubUserId,
+    getApiKey,
     updateApiKey,
     initiateAccountDeletion,
     cancelAccountDeletion
@@ -25,6 +26,8 @@ router.put('/update/backup-email', isAuth,sendOTPToMail,VerifyOTP, updateBackupE
 //route for github user id change !
 router.put('/update/github-user-id', isAuth,sendOTPToMail,VerifyOTP, updateGithubUserId);
 
+// API key routes
+router.get('/api-key', isAuth, getApiKey);
 router.post('/api-key', isAuth, updateApiKey);
 router.post('/delete', isAuth, initiateAccountDeletion);
 router.delete('/delete', isAuth, cancelAccountDeletion);

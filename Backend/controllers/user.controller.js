@@ -325,3 +325,104 @@ export const getProfile = async (req, res) => {
     });
   }
 }
+
+// Update profile controller
+export const updateProfile = async (req, res) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required",
+        success: false,
+      });
+    }
+
+    const { username, email, profilePicture } = req.body;
+
+    console.log(`User ${req.user._id} updating profile...`);
+    
+    // Validate input
+    if (!username || !email) {
+      return res.status(400).json({
+        message: "Username and email are required",
+        success: false,
+      });
+    }
+
+    // Check if username is already taken by another user
+    const existingUser = await userModel.findOne({ 
+      username: username, 
+      _id: { $ne: req.user._id } 
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Username already taken",
+        success: false,
+      });
+    }
+
+    // Check if email is already taken by another user
+    const existingEmail = await userModel.findOne({ 
+      email: email, 
+      _id: { $ne: req.user._id } 
+    });
+    
+    if (existingEmail) {
+      return res.status(400).json({
+        message: "Email already taken",
+        success: false,
+      });
+    }
+
+    // Update user in MongoDB
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        username,
+        email,
+        profilePicture: profilePicture || "https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp"
+      },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    // Also update user in PostgreSQL
+    try {
+      await prisma.user.update({
+        where: { id: req.user._id.toString() },
+        data: {
+          name: username,
+          email: email
+        }
+      });
+      console.log("User also updated in PostgreSQL");
+    } catch (error) {
+      console.log("Error updating user in PostgreSQL:", error.message);
+    }
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      success: true,
+      data: {
+        user: {
+          username: updatedUser.username,
+          email: updatedUser.email,
+          profilePicture: updatedUser.profilePicture
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({
+      message: "Server error, please try again later", 
+      success: false,
+    });
+  }
+}
