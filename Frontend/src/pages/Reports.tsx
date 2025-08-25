@@ -196,6 +196,80 @@ const Reports = () => {
     );
   }
 
+  // Check if there's any real data
+  const hasRealData = reportData.summary.totalDuration > 0 || 
+                     reportData.summary.totalSessions > 0 || 
+                     Object.keys(reportData.languages).length > 0;
+
+  if (!hasRealData) {
+    return (
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
+        <div className="ml-[16.5rem] mr-1">
+          <Hnavbar className="mt-1" />
+          <main className="mt-1 ml-1 mr-1 p-6">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">Reports & Analytics</h1>
+                <p className="text-gray-300 text-lg">Comprehensive insights into your coding productivity</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <select 
+                  value={period} 
+                  onChange={(e) => setPeriod(e.target.value)}
+                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-white/50 text-white backdrop-blur-sm appearance-none cursor-pointer hover:bg-white/20 transition-colors"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 0.5rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                    paddingRight: '2.5rem'
+                  }}
+                >
+                  <option value="7days" className="bg-black text-white">Last 7 Days</option>
+                  <option value="30days" className="bg-black text-white">Last 30 Days</option>
+                  <option value="3months" className="bg-black text-white">Last 3 Months</option>
+                  <option value="yearly" className="bg-black text-white">Last Year</option>
+                </select>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+
+            {/* No Data Message */}
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center max-w-md">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                  <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">No Coding Data Available</h3>
+                  <p className="text-gray-400 mb-6">
+                    No coding activity has been tracked for this period. Connect your VS Code extension to start generating reports.
+                  </p>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <h4 className="text-white font-semibold mb-2">How to get started:</h4>
+                    <ol className="text-gray-300 text-sm space-y-1 text-left">
+                      <li>1. Install the ThePrimeTime VS Code extension</li>
+                      <li>2. Get your API token from the Profile page</li>
+                      <li>3. Enter the token in the extension settings</li>
+                      <li>4. Start coding - reports will be generated automatically!</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black font-['Poppins']">
       <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
@@ -311,21 +385,27 @@ const Reports = () => {
                 <h3 className="text-xl font-semibold text-white">Language Distribution</h3>
               </div>
               <div className="space-y-4">
-                {Object.entries(reportData.languages)
-                  .sort(([, a], [, b]) => b.duration - a.duration)
-                  .slice(0, 5)
-                  .map(([language, data]) => (
-                    <div key={language} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="font-medium text-white">{language}</span>
+                {Object.keys(reportData.languages).length > 0 ? (
+                  Object.entries(reportData.languages)
+                    .sort(([, a], [, b]) => b.duration - a.duration)
+                    .slice(0, 5)
+                    .map(([language, data]) => (
+                      <div key={language} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <span className="font-medium text-white">{language}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-white">{formatTime(data.duration)}</div>
+                          <div className="text-sm text-gray-400">{data.files} files</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-white">{formatTime(data.duration)}</div>
-                        <div className="text-sm text-gray-400">{data.files} files</div>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                ) : (
+                  <div className="text-center text-gray-400 py-8">
+                    No language data available
+                  </div>
+                )}
               </div>
             </div>
 
@@ -338,18 +418,24 @@ const Reports = () => {
                 <h3 className="text-xl font-semibold text-white">Most Productive Hours</h3>
               </div>
               <div className="space-y-4">
-                {reportData.productiveHours.map((hourData, index) => (
-                  <div key={hourData.hour} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
-                      <span className="font-medium text-white">{hourData.hour}:00</span>
+                {reportData.productiveHours.length > 0 ? (
+                  reportData.productiveHours.map((hourData, index) => (
+                    <div key={hourData.hour} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
+                        <span className="font-medium text-white">{hourData.hour}:00</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-white">{formatTime(hourData.duration)}</div>
+                        <div className="text-sm text-gray-400">{hourData.percentage.toFixed(1)}%</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-white">{formatTime(hourData.duration)}</div>
-                      <div className="text-sm text-gray-400">{hourData.percentage.toFixed(1)}%</div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-8">
+                    No productivity data available
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -363,23 +449,29 @@ const Reports = () => {
               <h3 className="text-xl font-semibold text-white">Project Performance</h3>
             </div>
             <div className="space-y-4">
-              {reportData.projects.slice(0, 5).map((project, index) => (
-                <div key={project.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${index === 0 ? 'bg-yellow-500/20' : index === 1 ? 'bg-gray-500/20' : index === 2 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
-                      <span className="text-white font-bold">{index + 1}</span>
+              {reportData.projects.length > 0 ? (
+                reportData.projects.slice(0, 5).map((project, index) => (
+                  <div key={project.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${index === 0 ? 'bg-yellow-500/20' : index === 1 ? 'bg-gray-500/20' : index === 2 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
+                        <span className="text-white font-bold">{index + 1}</span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-white">{project.name}</div>
+                        <div className="text-sm text-gray-400">{project.sessions} sessions</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium text-white">{project.name}</div>
-                      <div className="text-sm text-gray-400">{project.sessions} sessions</div>
+                    <div className="text-right">
+                      <div className="font-semibold text-white">{formatTime(project.duration)}</div>
+                      <div className="text-sm text-gray-400">{project.percentage.toFixed(1)}%</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-white">{formatTime(project.duration)}</div>
-                    <div className="text-sm text-gray-400">{project.percentage.toFixed(1)}%</div>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  No project data available
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
