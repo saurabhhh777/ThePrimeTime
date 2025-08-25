@@ -3,7 +3,7 @@ import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { ActivityCalendar } from "react-activity-calendar";
 import { instance } from "../../lib/axios";
-import { Clock, Code, Calendar, Edit, Settings, Copy, Key, X, Save, Eye, EyeOff } from 'lucide-react';
+import { Clock, Code, Calendar, Edit, Settings, Copy, Key, X, Save, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ProfileData {
   user: {
@@ -34,11 +34,99 @@ const Profile = () => {
   });
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Date picker states
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     fetchProfileData();
     fetchApiKey();
   }, []);
+
+  // Date picker functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty days for padding
+    for (let i = 0; i < startingDay; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
+  };
+
+  const formatTime = (date: Date) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}${minutes === 0 ? '' : `:${minutes.toString().padStart(2, '0')}`}${ampm}`;
+  };
+
+  const formatDate = (date: Date) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const day = days[date.getDay()];
+    const dateNum = date.getDate();
+    const month = months[date.getMonth()];
+    
+    const suffix = dateNum === 1 || dateNum === 21 || dateNum === 31 ? 'st' :
+                  dateNum === 2 || dateNum === 22 ? 'nd' :
+                  dateNum === 3 || dateNum === 23 ? 'rd' : 'th';
+    
+    return `${day}, ${dateNum}${suffix} ${month}`;
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setShowDatePicker(false);
+  };
+
+  const handleTimeChange = (type: 'hours' | 'minutes', value: number) => {
+    const newTime = new Date(selectedTime);
+    if (type === 'hours') {
+      newTime.setHours(value);
+    } else {
+      newTime.setMinutes(value);
+    }
+    setSelectedTime(newTime);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newMonth = new Date(currentMonth);
+    if (direction === 'prev') {
+      newMonth.setMonth(newMonth.getMonth() - 1);
+    } else {
+      newMonth.setMonth(newMonth.getMonth() + 1);
+    }
+    setCurrentMonth(newMonth);
+  };
+
+  const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+  };
+
+  const isToday = (date: Date) => {
+    return isSameDay(date, new Date());
+  };
 
   const fetchProfileData = async () => {
     try {
@@ -257,6 +345,147 @@ const Profile = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Stats Cards */}
               <div className="lg:col-span-1 space-y-6">
+                {/* Date & Time Picker */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-semibold text-white mb-4">Date & Time Picker</h3>
+                  
+                  {/* Time and Date Display */}
+                  <div className="bg-white/5 rounded-xl p-4 mb-4">
+                    <div className="flex items-center gap-4">
+                      {/* Analog Clock */}
+                      <div className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                        <div className="absolute w-1 h-6 bg-black rounded-full transform -translate-y-3" 
+                             style={{ 
+                               transform: `rotate(${selectedTime.getHours() * 30 + selectedTime.getMinutes() * 0.5}deg) translateY(-3px)` 
+                             }}></div>
+                        <div className="absolute w-0.5 h-8 bg-blue-500 rounded-full transform -translate-y-4" 
+                             style={{ 
+                               transform: `rotate(${selectedTime.getMinutes() * 6}deg) translateY(-4px)` 
+                             }}></div>
+                        <div className="absolute w-1 h-1 bg-black rounded-full"></div>
+                        {/* Hour markers */}
+                        {[12, 3, 6, 9].map((hour, index) => (
+                          <div key={hour} className="absolute w-0.5 h-1 bg-black rounded-full"
+                               style={{
+                                 transform: `rotate(${hour * 30}deg) translateY(-8px)`
+                               }}></div>
+                        ))}
+                      </div>
+                      
+                      {/* Time and Date Text */}
+                      <div>
+                        <div className="text-2xl font-bold text-white">{formatTime(selectedTime)}</div>
+                        <div className="text-gray-300">{formatDate(selectedDate)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date Picker Toggle */}
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className="w-full bg-white/10 text-white px-4 py-3 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="h-5 w-5" />
+                    {showDatePicker ? 'Hide Calendar' : 'Show Calendar'}
+                  </button>
+
+                  {/* Calendar */}
+                  {showDatePicker && (
+                    <div className="mt-4 bg-white/5 rounded-xl p-4">
+                      {/* Calendar Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-medium text-white">
+                          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </h4>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigateMonth('prev')}
+                            className="p-1 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => navigateMonth('next')}
+                            className="p-1 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Days of Week */}
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                          <div key={day} className="text-center text-sm text-gray-400 py-1">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Calendar Grid */}
+                      <div className="grid grid-cols-7 gap-1">
+                        {getDaysInMonth(currentMonth).map((date, index) => (
+                          <button
+                            key={index}
+                            onClick={() => date && handleDateSelect(date)}
+                            disabled={!date}
+                            className={`
+                              w-8 h-8 rounded-lg text-sm font-medium transition-colors
+                              ${!date ? 'invisible' : ''}
+                              ${date && isSameDay(date, selectedDate) 
+                                ? 'bg-white text-black' 
+                                : date && isToday(date)
+                                ? 'bg-white/20 text-white border border-white/30'
+                                : 'text-white hover:bg-white/10'
+                              }
+                            `}
+                          >
+                            {date ? date.getDate() : ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Time Picker */}
+                  <div className="mt-4 bg-white/5 rounded-xl p-4">
+                    <h4 className="text-lg font-medium text-white mb-3">Time</h4>
+                    <div className="flex gap-4">
+                      {/* Hours */}
+                      <div className="flex-1">
+                        <label className="block text-sm text-gray-300 mb-2">Hours</label>
+                        <select
+                          value={selectedTime.getHours()}
+                          onChange={(e) => handleTimeChange('hours', parseInt(e.target.value))}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-white/50"
+                        >
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i} className="bg-black text-white">
+                              {i.toString().padStart(2, '0')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Minutes */}
+                      <div className="flex-1">
+                        <label className="block text-sm text-gray-300 mb-2">Minutes</label>
+                        <select
+                          value={selectedTime.getMinutes()}
+                          onChange={(e) => handleTimeChange('minutes', parseInt(e.target.value))}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-white/50"
+                        >
+                          {Array.from({ length: 60 }, (_, i) => (
+                            <option key={i} value={i} className="bg-black text-white">
+                              {i.toString().padStart(2, '0')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                   <h3 className="text-xl font-semibold text-white mb-4">Quick Stats</h3>
                   <div className="space-y-4">
