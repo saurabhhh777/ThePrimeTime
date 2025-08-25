@@ -46,6 +46,15 @@ const Profile = () => {
     fetchApiKey();
   }, []);
 
+  // Update current time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSelectedTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   // Date picker functions
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -447,40 +456,24 @@ const Profile = () => {
                     </div>
                   )}
 
-                  {/* Time Picker */}
+                  {/* Current Time Display */}
                   <div className="mt-4 bg-white/5 rounded-xl p-4">
-                    <h4 className="text-lg font-medium text-white mb-3">Time</h4>
+                    <h4 className="text-lg font-medium text-white mb-3">Current Time</h4>
                     <div className="flex gap-4">
                       {/* Hours */}
                       <div className="flex-1">
                         <label className="block text-sm text-gray-300 mb-2">Hours</label>
-                        <select
-                          value={selectedTime.getHours()}
-                          onChange={(e) => handleTimeChange('hours', parseInt(e.target.value))}
-                          className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-white/50"
-                        >
-                          {Array.from({ length: 24 }, (_, i) => (
-                            <option key={i} value={i} className="bg-black text-white">
-                              {i.toString().padStart(2, '0')}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
+                          {selectedTime.getHours().toString().padStart(2, '0')}
+                        </div>
                       </div>
                       
                       {/* Minutes */}
                       <div className="flex-1">
                         <label className="block text-sm text-gray-300 mb-2">Minutes</label>
-                        <select
-                          value={selectedTime.getMinutes()}
-                          onChange={(e) => handleTimeChange('minutes', parseInt(e.target.value))}
-                          className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-white/50"
-                        >
-                          {Array.from({ length: 60 }, (_, i) => (
-                            <option key={i} value={i} className="bg-black text-white">
-                              {i.toString().padStart(2, '0')}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-center">
+                          {selectedTime.getMinutes().toString().padStart(2, '0')}
+                        </div>
                       </div>
                     </div>
                   </div>
