@@ -195,7 +195,7 @@ const Hnavbar: React.FC<HnavbarProps> = ({ className }) => {
         </h2>
       </div>
     </span>
-  )
-}
+  );
+};
 
-export default Hnavbar
+export default Hnavbar;
