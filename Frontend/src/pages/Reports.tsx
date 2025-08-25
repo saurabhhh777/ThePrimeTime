@@ -14,8 +14,10 @@ import {
   Award,
   Zap,
   Users,
-  Folder
+  Folder,
+  RefreshCw
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ReportData {
   period: string;
@@ -60,6 +62,7 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState('30days');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchReports();
@@ -68,6 +71,7 @@ const Reports = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
+      setError(null);
       const token = localStorage.getItem('token');
       if (!token) {
         setError("Please sign in to view reports");
@@ -78,16 +82,34 @@ const Reports = () => {
       const response = await instance.get(`/api/v1/reports?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setReportData(response.data.data);
-    } catch (error) {
+      
+      if (response.data.success) {
+        setReportData(response.data.data);
+      } else {
+        setError("Failed to load reports");
+      }
+    } catch (error: any) {
       console.error("Error fetching reports:", error);
-      setError("Failed to load reports");
+      if (error.response?.status === 401) {
+        setError("Please sign in to view reports");
+        window.location.href = '/signin';
+      } else {
+        setError("Failed to load reports. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchReports();
+    setRefreshing(false);
+    toast.success('Reports refreshed successfully');
+  };
+
   const formatDuration = (ms: number) => {
+    if (!ms || ms === 0) return '0m';
     const hours = Math.floor(ms / (1000 * 60 * 60));
     const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
     if (hours > 0) {
@@ -97,6 +119,7 @@ const Reports = () => {
   };
 
   const formatTime = (ms: number) => {
+    if (!ms || ms === 0) return '0m';
     const hours = Math.floor(ms / (1000 * 60 * 60));
     const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
     if (hours > 0) {
@@ -107,10 +130,18 @@ const Reports = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl flex items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          Loading reports...
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
+        <div className="ml-[16.5rem] mr-1">
+          <Hnavbar className="mt-1" />
+          <main className="mt-1 ml-1 mr-1 p-6">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-white text-xl flex items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                Loading reports...
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -118,15 +149,23 @@ const Reports = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl text-center">
-          <div className="mb-4">{error}</div>
-          <button 
-            onClick={() => window.location.href = '/signin'} 
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          >
-            Go to Sign In
-          </button>
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
+        <div className="ml-[16.5rem] mr-1">
+          <Hnavbar className="mt-1" />
+          <main className="mt-1 ml-1 mr-1 p-6">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-white text-xl text-center">
+                <div className="mb-4">{error}</div>
+                <button 
+                  onClick={() => window.location.href = '/signin'} 
+                  className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Go to Sign In
+                </button>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -134,14 +173,31 @@ const Reports = () => {
 
   if (!reportData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">No report data available</div>
+      <div className="min-h-screen bg-black font-['Poppins']">
+        <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
+        <div className="ml-[16.5rem] mr-1">
+          <Hnavbar className="mt-1" />
+          <main className="mt-1 ml-1 mr-1 p-6">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-white text-xl text-center">
+                <div className="mb-4">No report data available</div>
+                <button 
+                  onClick={handleRefresh}
+                  className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-black font-['Poppins']">
       <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
       <div className="ml-[16.5rem] mr-1">
         <Hnavbar className="mt-1" />
@@ -152,22 +208,39 @@ const Reports = () => {
               <h1 className="text-4xl font-bold text-white mb-2">Reports & Analytics</h1>
               <p className="text-gray-300 text-lg">Comprehensive insights into your coding productivity</p>
             </div>
-            <select 
-              value={period} 
-              onChange={(e) => setPeriod(e.target.value)}
-              className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 text-white backdrop-blur-sm"
-            >
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="3months">Last 3 Months</option>
-              <option value="yearly">Last Year</option>
-            </select>
+            <div className="flex items-center gap-4">
+              <select 
+                value={period} 
+                onChange={(e) => setPeriod(e.target.value)}
+                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-white/50 text-white backdrop-blur-sm appearance-none cursor-pointer hover:bg-white/20 transition-colors"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.5em 1.5em',
+                  paddingRight: '2.5rem'
+                }}
+              >
+                <option value="7days" className="bg-black text-white">Last 7 Days</option>
+                <option value="30days" className="bg-black text-white">Last 30 Days</option>
+                <option value="3months" className="bg-black text-white">Last 3 Months</option>
+                <option value="yearly" className="bg-black text-white">Last Year</option>
+              </select>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
           </div>
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Total Coding Time</p>
@@ -175,14 +248,14 @@ const Reports = () => {
                     {formatDuration(reportData.summary.totalDuration)}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Clock className="h-8 w-8 text-blue-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Clock className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Coding Sessions</p>
@@ -190,14 +263,14 @@ const Reports = () => {
                     {reportData.summary.totalSessions}
                   </p>
                 </div>
-                <div className="p-3 bg-green-500/20 rounded-xl">
-                  <Code className="h-8 w-8 text-green-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Code className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Lines Changed</p>
@@ -205,14 +278,14 @@ const Reports = () => {
                     {reportData.summary.totalLinesChanged.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <FileText className="h-8 w-8 text-purple-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <FileText className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
 
             <div className="group relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-300 mb-1">Files Worked</p>
@@ -220,8 +293,8 @@ const Reports = () => {
                     {reportData.summary.totalFiles}
                   </p>
                 </div>
-                <div className="p-3 bg-orange-500/20 rounded-xl">
-                  <Folder className="h-8 w-8 text-orange-400" />
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Folder className="h-8 w-8 text-white" />
                 </div>
               </div>
             </div>
@@ -232,8 +305,8 @@ const Reports = () => {
             {/* Language Distribution */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Code className="h-6 w-6 text-blue-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Code className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Language Distribution</h3>
               </div>
@@ -242,9 +315,9 @@ const Reports = () => {
                   .sort(([, a], [, b]) => b.duration - a.duration)
                   .slice(0, 5)
                   .map(([language, data]) => (
-                    <div key={language} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div key={language} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
                         <span className="font-medium text-white">{language}</span>
                       </div>
                       <div className="text-right">
@@ -259,14 +332,14 @@ const Reports = () => {
             {/* Most Productive Hours */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Most Productive Hours</h3>
               </div>
               <div className="space-y-4">
                 {reportData.productiveHours.map((hourData, index) => (
-                  <div key={hourData.hour} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div key={hourData.hour} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
                       <span className="font-medium text-white">{hourData.hour}:00</span>
@@ -284,8 +357,8 @@ const Reports = () => {
           {/* Project Performance */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Target className="h-6 w-6 text-purple-400" />
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Target className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-white">Project Performance</h3>
             </div>
@@ -314,8 +387,8 @@ const Reports = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Award className="h-6 w-6 text-blue-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Award className="h-6 w-6 text-white" />
                 </div>
                 <h4 className="text-lg font-semibold text-white">Most Used Language</h4>
               </div>
@@ -324,8 +397,8 @@ const Reports = () => {
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Zap className="h-6 w-6 text-green-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Zap className="h-6 w-6 text-white" />
                 </div>
                 <h4 className="text-lg font-semibold text-white">Peak Hour</h4>
               </div>
@@ -334,8 +407,8 @@ const Reports = () => {
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Folder className="h-6 w-6 text-purple-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Folder className="h-6 w-6 text-white" />
                 </div>
                 <h4 className="text-lg font-semibold text-white">Total Projects</h4>
               </div>
@@ -344,8 +417,8 @@ const Reports = () => {
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-orange-500/20 rounded-lg">
-                  <Activity className="h-6 w-6 text-orange-400" />
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Activity className="h-6 w-6 text-white" />
                 </div>
                 <h4 className="text-lg font-semibold text-white">Avg Session</h4>
               </div>
