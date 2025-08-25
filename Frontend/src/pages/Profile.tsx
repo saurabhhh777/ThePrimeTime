@@ -3,7 +3,7 @@ import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { ActivityCalendar } from "react-activity-calendar";
 import { instance } from "../../lib/axios";
-import { Clock, Code, FileText, Calendar, Edit, Settings, Copy, Key, X, Save } from 'lucide-react';
+import { Clock, Code, Calendar, Edit, Settings, Copy, Key, X, Save, Eye, EyeOff } from 'lucide-react';
 
 interface ProfileData {
   user: {
@@ -26,6 +26,7 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
   const [editForm, setEditForm] = useState({
     username: "",
     email: "",
@@ -147,6 +148,17 @@ const Profile = () => {
     setShowEditModal(false);
   };
 
+  // Mock function to get hours for a specific date
+  const getHoursForDate = (date: string) => {
+    // This would normally come from your backend
+    // For now, returning mock data based on the activity level
+    const activity = profileData?.activityCalendar.find(a => a.date === date);
+    if (activity) {
+      return activity.level * 2; // Mock: level 1 = 2 hours, level 2 = 4 hours, etc.
+    }
+    return 0;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins']">
@@ -222,8 +234,16 @@ const Profile = () => {
               </p>
               <div className="flex items-center gap-3">
                 <div className="flex-1 bg-white/5 rounded-lg p-3 border border-white/10">
-                  <code className="text-white font-mono text-sm break-all">{apiKey || "Loading..."}</code>
+                  <code className="text-white font-mono text-sm break-all">
+                    {showApiKey ? (apiKey || "Loading...") : "••••••••••••••••••••"}
+                  </code>
                 </div>
+                <button 
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                >
+                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
                 <button 
                   onClick={copyToClipboard}
                   className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
@@ -305,6 +325,39 @@ const Profile = () => {
                         dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
                       }}
                     />
+                    <div className="mt-4 text-center">
+                      <p className="text-gray-400 text-sm">
+                        Hover over green squares to see coding hours
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Custom Calendar with Hover Tooltips */}
+                  <div className="mt-6 bg-white/5 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-4">Detailed Activity</h4>
+                    <div className="grid grid-cols-7 gap-1">
+                      {profileData.activityCalendar.map((activity, index) => (
+                        <div
+                          key={index}
+                          className="relative group cursor-pointer"
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-sm transition-all duration-200 ${
+                              activity.level === 4 ? 'bg-green-500' : 
+                              activity.level === 3 ? 'bg-green-400' : 
+                              activity.level === 2 ? 'bg-green-300' : 
+                              activity.level === 1 ? 'bg-green-200' : 'bg-gray-700'
+                            }`}
+                          />
+                          {/* Tooltip */}
+                          {activity.level > 0 && (
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                              {activity.date}: {getHoursForDate(activity.date)} hours
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -343,15 +396,16 @@ const Profile = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
+                  Email Address
                 </label>
                 <input
                   type="email"
                   value={editForm.email}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  placeholder="Enter email"
+                  disabled
+                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-gray-400 cursor-not-allowed opacity-50"
+                  placeholder="Email cannot be changed"
                 />
+                <p className="text-xs text-gray-500 mt-1">Email address cannot be modified for security reasons</p>
               </div>
               
               <div>

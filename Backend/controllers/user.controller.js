@@ -342,9 +342,17 @@ export const updateProfile = async (req, res) => {
     console.log(`User ${req.user._id} updating profile...`);
     
     // Validate input
-    if (!username || !email) {
+    if (!username) {
       return res.status(400).json({
-        message: "Username and email are required",
+        message: "Username is required",
+        success: false,
+      });
+    }
+
+    // Prevent email changes for security reasons
+    if (email) {
+      return res.status(400).json({
+        message: "Email address cannot be modified for security reasons",
         success: false,
       });
     }
@@ -362,25 +370,11 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Check if email is already taken by another user
-    const existingEmail = await userModel.findOne({ 
-      email: email, 
-      _id: { $ne: req.user._id } 
-    });
-    
-    if (existingEmail) {
-      return res.status(400).json({
-        message: "Email already taken",
-        success: false,
-      });
-    }
-
-    // Update user in MongoDB
+    // Update user in MongoDB (only username and profilePicture)
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       {
         username,
-        email,
         profilePicture: profilePicture || "https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp"
       },
       { new: true }
@@ -393,13 +387,12 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Also update user in PostgreSQL
+    // Also update user in PostgreSQL (only name, not email)
     try {
       await prisma.user.update({
         where: { id: req.user._id.toString() },
         data: {
-          name: username,
-          email: email
+          name: username
         }
       });
       console.log("User also updated in PostgreSQL");

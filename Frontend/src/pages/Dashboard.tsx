@@ -148,11 +148,18 @@ const Dashboard = () => {
               <select 
                 value={period} 
                 onChange={(e) => setPeriod(e.target.value)}
-                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-white text-white backdrop-blur-sm"
+                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-white text-white backdrop-blur-sm appearance-none cursor-pointer hover:bg-white/20 transition-colors"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.5em 1.5em',
+                  paddingRight: '2.5rem'
+                }}
               >
-                <option value="30days">Last 30 Days</option>
-                <option value="3months">Last 3 Months</option>
-                <option value="yearly">Last Year</option>
+                <option value="30days" className="bg-black text-white">Last 30 Days</option>
+                <option value="3months" className="bg-black text-white">Last 3 Months</option>
+                <option value="yearly" className="bg-black text-white">Last Year</option>
               </select>
               {subscription && (
                 <div className={`px-4 py-2 rounded-full text-sm font-medium ${getSubscriptionColor(subscription.subscriptionType)} backdrop-blur-sm`}>
