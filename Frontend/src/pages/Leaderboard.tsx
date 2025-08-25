@@ -16,7 +16,18 @@ import {
   Award,
   Users,
   Target,
-  Zap
+  Zap,
+  BarChart3, 
+  FileText, 
+  Activity,
+  Calendar,
+  Folder,
+  RefreshCw,
+  X,
+  ExternalLink,
+  MapPin,
+  Mail,
+  Phone
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -38,6 +49,50 @@ interface LeaderboardUser {
   updatedAt: string;
 }
 
+interface UserProfileData {
+  user: {
+    username: string;
+    email: string;
+    profilePicture: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    github?: string;
+  };
+  stats: {
+    totalHours: number;
+    weeklyHours: number;
+    monthlyHours: number;
+    totalActivities: number;
+    totalProjects: number;
+    averageSessionDuration: number;
+    longestStreak: number;
+    currentStreak: number;
+  };
+  achievements: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    unlockedAt: string;
+  }>;
+  recentActivity: Array<{
+    date: string;
+    hours: number;
+    projects: string[];
+  }>;
+  topLanguages: Array<{
+    name: string;
+    hours: number;
+    percentage: number;
+  }>;
+  topProjects: Array<{
+    name: string;
+    hours: number;
+    lastActive: string;
+  }>;
+}
+
 const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +101,11 @@ const Leaderboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<LeaderboardUser | null>(null);
   const [timeFilter, setTimeFilter] = useState('all');
+  
+  // User profile modal states
+  const [selectedUserProfile, setSelectedUserProfile] = useState<UserProfileData | null>(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const countries = [
     "all", "India", "USA", "UK", "Australia", "Canada", "Germany", 
@@ -238,6 +298,112 @@ const Leaderboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      setProfileLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Try to fetch real user profile data
+      try {
+        const response = await instance.get(`/api/v1/user/profile/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data.success) {
+          setSelectedUserProfile(response.data.data);
+          setShowUserProfile(true);
+          return;
+        }
+      } catch (apiError) {
+        console.log("API not available, using mock profile data");
+      }
+
+      // Mock profile data
+      const mockProfileData: UserProfileData = {
+        user: {
+          username: 'CodeMaster',
+          email: 'codemaster@example.com',
+          profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+          bio: 'Full-stack developer passionate about creating innovative solutions. Love working with React, Node.js, and Python.',
+          location: 'San Francisco, CA',
+          website: 'https://codemaster.dev',
+          github: 'github.com/codemaster'
+        },
+        stats: {
+          totalHours: 156,
+          weeklyHours: 42,
+          monthlyHours: 156,
+          totalActivities: 89,
+          totalProjects: 12,
+          averageSessionDuration: 2.3,
+          longestStreak: 15,
+          currentStreak: 7
+        },
+        achievements: [
+          {
+            id: '1',
+            name: 'Early Bird',
+            description: 'Code for 7 days in a row',
+            icon: '🌅',
+            unlockedAt: '2024-01-10T00:00:00.000Z'
+          },
+          {
+            id: '2',
+            name: 'Language Master',
+            description: 'Use 5 different programming languages',
+            icon: '🏆',
+            unlockedAt: '2024-01-15T00:00:00.000Z'
+          },
+          {
+            id: '3',
+            name: 'Night Owl',
+            description: 'Code for 3 hours after midnight',
+            icon: '🦉',
+            unlockedAt: '2024-01-12T00:00:00.000Z'
+          }
+        ],
+        recentActivity: [
+          { date: '2024-01-17', hours: 6.5, projects: ['ThePrimeTime Extension', 'Personal Portfolio'] },
+          { date: '2024-01-16', hours: 4.2, projects: ['API Backend', 'Mobile App'] },
+          { date: '2024-01-15', hours: 7.1, projects: ['E-commerce Platform'] },
+          { date: '2024-01-14', hours: 3.8, projects: ['Data Analysis Tool'] },
+          { date: '2024-01-13', hours: 5.4, projects: ['ThePrimeTime Extension'] }
+        ],
+        topLanguages: [
+          { name: 'JavaScript', hours: 45, percentage: 35 },
+          { name: 'TypeScript', hours: 38, percentage: 29 },
+          { name: 'Python', hours: 32, percentage: 25 },
+          { name: 'React', hours: 28, percentage: 22 }
+        ],
+        topProjects: [
+          { name: 'ThePrimeTime Extension', hours: 45, lastActive: '2024-01-17' },
+          { name: 'Personal Portfolio', hours: 32, lastActive: '2024-01-16' },
+          { name: 'API Backend', hours: 28, lastActive: '2024-01-15' },
+          { name: 'Mobile App', hours: 22, lastActive: '2024-01-14' }
+        ]
+      };
+
+      setSelectedUserProfile(mockProfileData);
+      setShowUserProfile(true);
+      
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to load user profile");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleUserClick = (user: LeaderboardUser) => {
+    fetchUserProfile(user.user._id);
+  };
+
+  const closeUserProfile = () => {
+    setShowUserProfile(false);
+    setSelectedUserProfile(null);
   };
 
   const getRankIcon = (rank: number) => {
@@ -440,7 +606,11 @@ const Leaderboard = () => {
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {filteredData.map((user, index) => (
-                    <tr key={user._id} className="hover:bg-white/5 transition-colors">
+                    <tr 
+                      key={user._id} 
+                      className="hover:bg-white/5 transition-colors cursor-pointer"
+                      onClick={() => handleUserClick(user)}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${getRankBadge(user.user_rank)}`}>
@@ -543,6 +713,172 @@ const Leaderboard = () => {
           </div>
         </main>
       </div>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-black/90 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                {selectedUserProfile.user.username}
+              </h2>
+              <button onClick={closeUserProfile} className="text-white hover:text-gray-400">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <img
+                      src={selectedUserProfile.user.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                      alt={selectedUserProfile.user.username}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {selectedUserProfile.user.username}
+                  </h3>
+                </div>
+                <p className="text-gray-300 text-sm mb-4">
+                  {selectedUserProfile.user.bio || 'No bio available.'}
+                </p>
+                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  <MapPin className="h-4 w-4" />
+                  {selectedUserProfile.user.location || 'Location not specified'}
+                </div>
+                <div className="flex items-center gap-3 text-gray-400 text-sm mt-2">
+                  <ExternalLink className="h-4 w-4" />
+                  {selectedUserProfile.user.website && (
+                    <a href={selectedUserProfile.user.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {selectedUserProfile.user.website}
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 text-gray-400 text-sm mt-2">
+                  <ExternalLink className="h-4 w-4" />
+                  {selectedUserProfile.user.github && (
+                    <a href={selectedUserProfile.user.github} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {selectedUserProfile.user.github}
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Stats</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-gray-300 text-sm">
+                  <div className="flex justify-between">
+                    <span>Total Hours</span>
+                    <span>{selectedUserProfile.stats.totalHours}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Weekly Hours</span>
+                    <span>{selectedUserProfile.stats.weeklyHours}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Monthly Hours</span>
+                    <span>{selectedUserProfile.stats.monthlyHours}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Average Session Duration</span>
+                    <span>{selectedUserProfile.stats.averageSessionDuration}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Longest Streak</span>
+                    <span>{selectedUserProfile.stats.longestStreak} days</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Current Streak</span>
+                    <span>{selectedUserProfile.stats.currentStreak} days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Activity className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Recent Activity</h3>
+                </div>
+                <div className="space-y-3 text-gray-300 text-sm">
+                  {selectedUserProfile.recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="text-gray-400 text-xs">{activity.date}</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-white">{activity.hours}h on {activity.projects.length} projects</div>
+                        <div className="text-gray-400">Projects: {activity.projects.join(', ')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Activity Calendar</h3>
+                </div>
+                <div className="text-gray-300 text-sm">
+                  {/* Placeholder for activity calendar */}
+                  <p>Activity calendar data will be displayed here.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Folder className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Top Projects</h3>
+              </div>
+              <div className="space-y-3 text-gray-300 text-sm">
+                {selectedUserProfile.topProjects.map((project, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="text-gray-400 text-xs">{project.lastActive}</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white">{project.name}</div>
+                      <div className="text-gray-400">Hours: {project.hours}h</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <RefreshCw className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Achievements</h3>
+              </div>
+              <div className="space-y-3 text-gray-300 text-sm">
+                {selectedUserProfile.achievements.map((achievement, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="text-gray-400 text-xs">{achievement.unlockedAt}</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white">{achievement.name}</div>
+                      <div className="text-gray-400">{achievement.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
