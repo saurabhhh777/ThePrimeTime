@@ -266,33 +266,9 @@ const Projects = () => {
       const folderMap = new Map<string, { duration: number, files: number }>();
       
       realTimeUpdates.forEach(update => {
-        if (update.fileName) {
-          // Extract folder from file path - get the actual folder name
-          const pathParts = update.fileName.split('/');
-          let folder = 'Unknown';
-          
-          if (pathParts.length > 1) {
-            // Get the folder name from the path
-            // If it's a full path like /home/sa/Desktop/sa/go/gRPC/main.js
-            // We want to get "gRPC" as the folder name
-            if (pathParts.length > 2) {
-              // Look for meaningful folder names (skip system paths)
-              for (let i = pathParts.length - 2; i >= 0; i--) {
-                const potentialFolder = pathParts[i];
-                // Skip common system folders and use meaningful project folders
-                if (potentialFolder && 
-                    !['home', 'Desktop', 'sa', 'src', 'dist', 'node_modules', 'build', 'public'].includes(potentialFolder.toLowerCase())) {
-                  folder = potentialFolder;
-                  break;
-                }
-              }
-            } else {
-              folder = pathParts[0] || 'Unknown';
-            }
-          } else {
-            folder = 'Root';
-          }
-          
+        if (update.folder) {
+          // Use the folder name sent by the extension (workspace folder name)
+          const folder = update.folder;
           const existing = folderMap.get(folder) || { duration: 0, files: 1 };
           existing.duration += update.duration || 0;
           existing.files = Math.max(existing.files, 1);
@@ -500,27 +476,7 @@ const Projects = () => {
                   <div className="bg-black/30 p-3 rounded text-xs space-y-1">
                     <div><span className="text-gray-400">File:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].fileName}</span></div>
                     <div><span className="text-gray-400">Language:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].language}</span></div>
-                    <div><span className="text-gray-400">Folder:</span> <span className="text-purple-400">{(() => {
-                      const pathParts = realTimeUpdates[realTimeUpdates.length - 1].fileName.split('/');
-                      let folder = 'Unknown';
-                      if (pathParts.length > 1) {
-                        if (pathParts.length > 2) {
-                          for (let i = pathParts.length - 2; i >= 0; i--) {
-                            const potentialFolder = pathParts[i];
-                            if (potentialFolder && 
-                                !['home', 'Desktop', 'sa', 'src', 'dist', 'node_modules', 'build', 'public'].includes(potentialFolder.toLowerCase())) {
-                              folder = potentialFolder;
-                              break;
-                            }
-                          }
-                        } else {
-                          folder = pathParts[0] || 'Unknown';
-                        }
-                      } else {
-                        folder = 'Root';
-                      }
-                      return folder;
-                    })()}</span></div>
+                    <div><span className="text-gray-400">Folder:</span> <span className="text-purple-400">{realTimeUpdates[realTimeUpdates.length - 1].folder || 'Unknown'}</span></div>
                     <div><span className="text-gray-400">Duration:</span> <span className="text-green-400">{formatDuration(realTimeUpdates[realTimeUpdates.length - 1].duration, timeFormat)}</span></div>
                     <div><span className="text-gray-400">Lines Changed:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].linesChanged}</span></div>
                     <div><span className="text-gray-400">Characters:</span> <span className="text-white">{realTimeUpdates[realTimeUpdates.length - 1].charactersTyped}</span></div>
@@ -543,27 +499,7 @@ const Projects = () => {
                   <div className="font-semibold">{liveStats.currentSession.fileName}</div>
                   <div className="text-xs text-gray-400">{liveStats.currentSession.language}</div>
                   <div className="text-xs text-purple-400 mt-1">
-                    📁 {(() => {
-                      const pathParts = liveStats.currentSession.fileName.split('/');
-                      let folder = 'Unknown';
-                      if (pathParts.length > 1) {
-                        if (pathParts.length > 2) {
-                          for (let i = pathParts.length - 2; i >= 0; i--) {
-                            const potentialFolder = pathParts[i];
-                            if (potentialFolder && 
-                                !['home', 'Desktop', 'sa', 'src', 'dist', 'node_modules', 'build', 'public'].includes(potentialFolder.toLowerCase())) {
-                              folder = potentialFolder;
-                              break;
-                            }
-                          }
-                        } else {
-                          folder = pathParts[0] || 'Unknown';
-                        }
-                      } else {
-                        folder = 'Root';
-                      }
-                      return folder;
-                    })()}
+                    📁 {liveStats.currentSession.folder || 'Unknown'}
                   </div>
                 </div>
                 <div className="bg-black/30 p-3 rounded">

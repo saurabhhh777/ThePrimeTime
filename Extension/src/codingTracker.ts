@@ -328,8 +328,28 @@ export class CodingTracker {
     }
 
     private getFolderFromPath(filePath: string): string {
+        // Get the workspace folder name that's actually opened in VS Code
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            // Use the first workspace folder name
+            return workspaceFolders[0].name;
+        }
+        
+        // Fallback: try to get meaningful folder name from path
         const pathParts = filePath.split('/');
-        return pathParts.length > 1 ? pathParts[pathParts.length - 2] : 'root';
+        if (pathParts.length > 1) {
+            // Look for meaningful folder names (skip system paths)
+            for (let i = pathParts.length - 2; i >= 0; i--) {
+                const potentialFolder = pathParts[i];
+                // Skip common system folders and use meaningful project folders
+                if (potentialFolder && 
+                    !['home', 'Desktop', 'sa', 'src', 'dist', 'node_modules', 'build', 'public'].includes(potentialFolder.toLowerCase())) {
+                    return potentialFolder;
+                }
+            }
+        }
+        
+        return 'Unknown';
     }
 
     private getFileNameFromPath(filePath: string): string {
