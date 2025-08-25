@@ -243,18 +243,27 @@ const Projects = () => {
       }
     }
     
-    // Fallback to codingStats if available
-    if (codingStats?.languageStats) {
-      return Object.entries(codingStats.languageStats)
-        .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
-        .slice(0, 5)
-        .map(([language, data]) => ({
-          language,
-          duration: data.duration || 0,
-          files: data.files || 0,
-          percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
-          hours: (data.duration || 0) / (1000 * 60 * 60)
-        }));
+    // Only use codingStats if it has very recent data (within last hour)
+    if (codingStats?.languageStats && Object.keys(codingStats.languageStats).length > 0) {
+      // Check if the data is very recent (within last hour)
+      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      const hasRecentData = Object.values(codingStats.languageStats).some((data: any) => {
+        const hours = (data.duration || 0) / (1000 * 60 * 60);
+        return hours > 0 && hours < 10; // Reasonable range for recent data
+      });
+      
+      if (hasRecentData) {
+        return Object.entries(codingStats.languageStats)
+          .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
+          .slice(0, 5)
+          .map(([language, data]) => ({
+            language,
+            duration: data.duration || 0,
+            files: data.files || 0,
+            percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
+            hours: (data.duration || 0) / (1000 * 60 * 60)
+          }));
+      }
     }
     
     return [];
@@ -290,18 +299,27 @@ const Projects = () => {
       }
     }
     
-    // Fallback to codingStats if available
-    if (codingStats?.folderStats) {
-      return Object.entries(codingStats.folderStats)
-        .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
-        .slice(0, 5)
-        .map(([folder, data]) => ({
-          folder,
-          duration: data.duration || 0,
-          files: data.files || 0,
-          percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
-          hours: (data.duration || 0) / (1000 * 60 * 60)
-        }));
+    // Only use codingStats if it has very recent data (within last hour)
+    if (codingStats?.folderStats && Object.keys(codingStats.folderStats).length > 0) {
+      // Check if the data is very recent (within last hour)
+      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      const hasRecentData = Object.values(codingStats.folderStats).some((data: any) => {
+        const hours = (data.duration || 0) / (1000 * 60 * 60);
+        return hours > 0 && hours < 10; // Reasonable range for recent data
+      });
+      
+      if (hasRecentData) {
+        return Object.entries(codingStats.folderStats)
+          .sort(([, a], [, b]) => (b.duration || 0) - (a.duration || 0))
+          .slice(0, 5)
+          .map(([folder, data]) => ({
+            folder,
+            duration: data.duration || 0,
+            files: data.files || 0,
+            percentage: ((data.duration || 0) / (codingStats.totalDuration || 1)) * 100,
+            hours: (data.duration || 0) / (1000 * 60 * 60)
+          }));
+      }
     }
     
     return [];
