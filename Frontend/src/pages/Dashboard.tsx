@@ -35,18 +35,30 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        console.error('No token found in localStorage');
+        console.error('No token found for stats fetch');
         return;
       }
 
       console.log('Fetching stats with token:', token.substring(0, 20) + '...');
       
-      const response = await instance.get(`/api/v1/coding-stats/stats?period=${period}`, {
+      // Fetch coding stats
+      const statsResponse = await instance.get(`/api/v1/coding-stats/stats?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log('Stats response:', response.data);
-      setStats(response.data.data);
+      console.log('Stats response:', statsResponse.data);
+      setStats(statsResponse.data.data);
+
+      // Fetch dashboard data
+      try {
+        const dashboardResponse = await instance.get('/api/v1/dashboard', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log('Dashboard response:', dashboardResponse.data);
+        // You can add dashboard-specific state here if needed
+      } catch (dashboardError) {
+        console.log('Dashboard API not available, using coding stats only');
+      }
     } catch (error: any) {
       console.error('Error fetching stats:', error);
       if (error.response) {
