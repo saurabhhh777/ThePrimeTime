@@ -90,17 +90,30 @@ const Settings = () => {
         return;
       }
 
-      const response = await instance.get("/api/v1/user/profile", {
+      const response = await instance.get("/api/v1/user/settings", {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       const userData = response.data.data;
-      setSettings(prev => ({
-        ...prev,
+      setSettings({
         username: userData.username || '',
         email: userData.email || '',
-        profilePicture: userData.profilePicture || ''
-      }));
+        profilePicture: userData.profilePicture || '',
+        theme: userData.theme || 'dark',
+        language: userData.language || 'en',
+        timezone: userData.timezone || 'UTC',
+        notifications: userData.notifications || {
+          email: true,
+          push: true,
+          weekly: false,
+          monthly: true
+        },
+        privacy: userData.privacy || {
+          profileVisibility: 'public',
+          showEmail: false,
+          showStats: true
+        }
+      });
     } catch (error: any) {
       console.error("Error fetching user settings:", error);
       toast.error('Failed to load settings');
@@ -114,9 +127,14 @@ const Settings = () => {
       setSaving(true);
       const token = localStorage.getItem('token');
       
-      const response = await instance.put("/api/v1/user/profile", {
+      const response = await instance.put("/api/v1/user/settings", {
         username: settings.username,
-        profilePicture: settings.profilePicture
+        profilePicture: settings.profilePicture,
+        theme: settings.theme,
+        language: settings.language,
+        timezone: settings.timezone,
+        notifications: settings.notifications,
+        privacy: settings.privacy
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -160,7 +178,11 @@ const Settings = () => {
       toast.success('Password updated successfully!');
     } catch (error: any) {
       console.error("Error updating password:", error);
-      toast.error('Failed to update password');
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to update password');
+      }
     } finally {
       setSaving(false);
     }
@@ -184,7 +206,11 @@ const Settings = () => {
       window.location.href = '/signin';
     } catch (error: any) {
       console.error("Error deleting account:", error);
-      toast.error('Failed to delete account');
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to delete account');
+      }
     } finally {
       setSaving(false);
     }

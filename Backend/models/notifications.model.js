@@ -4,7 +4,24 @@ const notificationsSchema = new mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
+        required: true,
         unique:true,
+    },
+    email_notifications: {
+        type: Boolean,
+        default: true
+    },
+    push_notifications: {
+        type: Boolean,
+        default: true
+    },
+    weekly_reports: {
+        type: Boolean,
+        default: false
+    },
+    monthly_reports: {
+        type: Boolean,
+        default: true
     },
     current_notifications:{
         report_from_weekly_or_monthly:{

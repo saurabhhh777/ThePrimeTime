@@ -7,6 +7,11 @@ const Validtimezones = moment.tz.names();
 const startOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 const preferencesSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     TimeZone:[{
         type:String,
         enum:Validtimezones,
@@ -15,8 +20,8 @@ const preferencesSchema = new mongoose.Schema({
     }],
     Theme:{
         type:String,
-        enum:["light","dark"],
-        default:"light",
+        enum:["light","dark","system"],
+        default:"dark",
         required:true,
     },
     defaulRange:{

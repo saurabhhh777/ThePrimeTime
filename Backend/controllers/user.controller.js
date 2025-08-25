@@ -419,3 +419,294 @@ export const updateProfile = async (req, res) => {
     });
   }
 }
+
+// Get user settings
+export const getUserSettings = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required",
+        success: false,
+      });
+    }
+
+    console.log(`User ${req.user._id} fetching settings...`);
+    
+    // Get user data
+    const user = await userModel.findById(req.user._id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    // Get or create preferences
+    let preferences = await preferencesModel.findOne({ user: req.user._id });
+    if (!preferences) {
+      preferences = await preferencesModel.create({
+        user: req.user._id,
+        Theme: "dark",
+        TimeZone: ["UTC"],
+        defaulRange: 7,
+        start_of_week: "Sunday",
+        dateformat: "DD/MM/YYYY"
+      });
+    }
+
+    // Get notifications settings
+    let notifications = await notificationsModel.findOne({ user: req.user._id });
+    if (!notifications) {
+      notifications = await notificationsModel.create({
+        user: req.user._id,
+        email_notifications: true,
+        push_notifications: true,
+        weekly_reports: false,
+        monthly_reports: true
+      });
+    }
+
+    return res.status(200).json({
+      message: "Settings retrieved successfully",
+      success: true,
+      data: {
+        username: user.username,
+        email: user.email,
+        profilePicture: user.profilePicture || "https://res.cloudinary.com/dongxnnnp/image/upload/v1739618128/urlShortner/rgwojzux26zzl2tc4rmm.webp",
+        theme: preferences.Theme,
+        language: "en",
+        timezone: preferences.TimeZone[0] || "UTC",
+        notifications: {
+          email: notifications.email_notifications,
+          push: notifications.push_notifications,
+          weekly: notifications.weekly_reports,
+          monthly: notifications.monthly_reports
+        },
+        privacy: {
+          profileVisibility: "public",
+          showEmail: false,
+          showStats: true
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching user settings:", error);
+    return res.status(500).json({
+      message: "Server error, please try again later", 
+      success: false,
+    });
+  }
+}
+
+// Update user settings
+export const updateUserSettings = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required",
+        success: false,
+      });
+    }
+
+    const { 
+      username, 
+      profilePicture, 
+      theme, 
+      language, 
+      timezone, 
+      notifications, 
+      privacy 
+    } = req.body;
+
+    console.log(`User ${req.user._id} updating settings...`);
+    
+    // Update profile information
+    if (username) {
+      const existingUser = await userModel.findOne({ 
+        username: username, 
+        _id: { $ne: req.user._id } 
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          message: "Username already taken",
+          success: false,
+        });
+      }
+
+      await userModel.findByIdAndUpdate(req.user._id, {
+        username,
+        profilePicture: profilePicture || user.profilePicture
+      });
+    }
+
+    // Update preferences
+    let preferences = await preferencesModel.findOne({ user: req.user._id });
+    if (!preferences) {
+      preferences = new preferencesModel({ user: req.user._id });
+    }
+
+    if (theme) preferences.Theme = theme;
+    if (timezone) preferences.TimeZone = [timezone];
+    if (language) preferences.language = language;
+
+    await preferences.save();
+
+    // Update notifications
+    if (notifications) {
+      let userNotifications = await notificationsModel.findOne({ user: req.user._id });
+      if (!userNotifications) {
+        userNotifications = new notificationsModel({ user: req.user._id });
+      }
+
+      if (notifications.email !== undefined) userNotifications.email_notifications = notifications.email;
+      if (notifications.push !== undefined) userNotifications.push_notifications = notifications.push;
+      if (notifications.weekly !== undefined) userNotifications.weekly_reports = notifications.weekly;
+      if (notifications.monthly !== undefined) userNotifications.monthly_reports = notifications.monthly;
+
+      await userNotifications.save();
+    }
+
+    return res.status(200).json({
+      message: "Settings updated successfully",
+      success: true,
+      data: {
+        message: "Settings have been updated successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error updating user settings:", error);
+    return res.status(500).json({
+      message: "Server error, please try again later", 
+      success: false,
+    });
+  }
+}
+
+// Update password
+export const updatePassword = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required",
+        success: false,
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    console.log(`User ${req.user._id} updating password...`);
+    
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Current password and new password are required",
+        success: false,
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "New password must be at least 6 characters long",
+        success: false,
+      });
+    }
+
+    // Get user with password
+    const user = await userModel.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcryptjs.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        message: "Current password is incorrect",
+        success: false,
+      });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 12);
+
+    // Update password in MongoDB
+    await userModel.findByIdAndUpdate(req.user._id, {
+      password: hashedNewPassword
+    });
+
+    // Update password in PostgreSQL
+    try {
+      await prisma.user.update({
+        where: { id: req.user._id.toString() },
+        data: { password: hashedNewPassword }
+      });
+    } catch (error) {
+      console.log("Error updating password in PostgreSQL:", error.message);
+    }
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+      success: true,
+      data: {
+        message: "Password has been updated successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return res.status(500).json({
+      message: "Server error, please try again later", 
+      success: false,
+    });
+  }
+}
+
+// Delete account
+export const deleteAccount = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required",
+        success: false,
+      });
+    }
+
+    console.log(`User ${req.user._id} deleting account...`);
+    
+    // Delete user from MongoDB
+    await userModel.findByIdAndDelete(req.user._id);
+    
+    // Delete user from PostgreSQL
+    try {
+      await prisma.user.delete({
+        where: { id: req.user._id.toString() }
+      });
+    } catch (error) {
+      console.log("Error deleting user from PostgreSQL:", error.message);
+    }
+
+    // Delete associated models
+    await accountModel.findOneAndDelete({ user: req.user._id });
+    await billingModel.findOneAndDelete({ user: req.user._id });
+    await notificationsModel.findOneAndDelete({ user: req.user._id });
+    await preferencesModel.findOneAndDelete({ user: req.user._id });
+
+    return res.status(200).json({
+      message: "Account deleted successfully",
+      success: true,
+      data: {
+        message: "Your account has been permanently deleted"
+      }
+    });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    return res.status(500).json({
+      message: "Server error, please try again later", 
+      success: false,
+    });
+  }
+}
