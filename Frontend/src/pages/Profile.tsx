@@ -48,8 +48,18 @@ const Profile = () => {
 
   useEffect(() => {
     checkCurrentUser();
+    fetchCurrentUserProfile();
     if (username) {
-      fetchProfileByUsername(username);
+      // Wait a bit for current user data to be fetched, then check if it's the same user
+      setTimeout(() => {
+        if (currentUser && currentUser.username === username) {
+          console.log('This is the current user\'s profile, fetching own profile');
+          setIsOwnProfile(true);
+          fetchOwnProfile();
+        } else {
+          fetchProfileByUsername(username);
+        }
+      }, 100);
     } else {
       fetchOwnProfile();
     }
@@ -74,6 +84,29 @@ const Profile = () => {
       } catch (error) {
         console.error("Error decoding token:", error);
       }
+    }
+  };
+
+  const fetchCurrentUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await instance.get("/api/v1/user/profile", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        const userData = response.data.data.user;
+        setCurrentUser((prev: any) => ({
+          ...prev,
+          username: userData.username,
+          email: userData.email
+        }));
+        console.log('Current user profile fetched:', userData.username);
+      }
+    } catch (error) {
+      console.error("Error fetching current user profile:", error);
     }
   };
 
@@ -146,6 +179,22 @@ const Profile = () => {
       console.error("Error response:", error.response?.data);
       
       if (error.response?.status === 404) {
+        // If user not found, check if it's the current user and redirect to own profile
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            // If the requested username matches the current user's username, fetch own profile
+            if (payload.username === targetUsername) {
+              console.log('User not found in public API, fetching own profile instead');
+              setIsOwnProfile(true);
+              fetchOwnProfile();
+              return;
+            }
+          } catch (tokenError) {
+            console.error('Error decoding token:', tokenError);
+          }
+        }
         setError("User not found. The profile you're looking for doesn't exist.");
       } else if (error.response?.status === 401) {
         setError("Authentication required to view this profile.");
