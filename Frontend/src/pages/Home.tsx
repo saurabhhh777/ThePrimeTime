@@ -3,14 +3,14 @@ import { Star, ArrowRight, Code2, BarChart2, Activity, Database } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/ui/footer';
 
 const Home = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     checkAuthStatus();

@@ -1,23 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from "../../lib/axios";
 import { io, Socket } from 'socket.io-client';
 import { 
-  Plus, 
   Folder, 
   Clock, 
   Code, 
   FileText, 
   BarChart3, 
-  Calendar,
   Edit,
   Trash2,
   Eye,
-  TrendingUp,
   Activity,
   Zap,
-  Target,
   Timer,
   PieChart,
   BarChart,
@@ -245,8 +241,7 @@ const Projects = () => {
     
     // Only use codingStats if it has very recent data (within last hour)
     if (codingStats?.languageStats && Object.keys(codingStats.languageStats).length > 0) {
-      // Check if the data is very recent (within last hour)
-      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      // Check if the data is very recent
       const hasRecentData = Object.values(codingStats.languageStats).some((data: any) => {
         const hours = (data.duration || 0) / (1000 * 60 * 60);
         return hours > 0 && hours < 10; // Reasonable range for recent data
@@ -301,8 +296,7 @@ const Projects = () => {
     
     // Only use codingStats if it has very recent data (within last hour)
     if (codingStats?.folderStats && Object.keys(codingStats.folderStats).length > 0) {
-      // Check if the data is very recent (within last hour)
-      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      // Check if the data is very recent
       const hasRecentData = Object.values(codingStats.folderStats).some((data: any) => {
         const hours = (data.duration || 0) / (1000 * 60 * 60);
         return hours > 0 && hours < 10; // Reasonable range for recent data
@@ -325,7 +319,7 @@ const Projects = () => {
     return [];
   };
 
-  const renderBarChart = (data: any[], title: string, color: string) => {
+  const renderBarChart = (data: any[], _title: string, color: string) => {
     if (!data || data.length === 0) {
       return (
         <div className="text-center text-gray-400 py-8">
@@ -356,7 +350,7 @@ const Projects = () => {
     );
   };
 
-  const renderPieChart = (data: any[], title: string) => {
+  const renderPieChart = (data: any[]) => {
     if (!data || data.length === 0) {
       return (
         <div className="text-center text-gray-400 py-8">
@@ -390,7 +384,7 @@ const Projects = () => {
     );
   };
 
-  const renderLineChart = (data: any[], title: string) => {
+  const renderLineChart = (data: any[]) => {
     if (!data || data.length === 0) {
       return (
         <div className="text-center text-gray-400 py-8">
@@ -670,8 +664,8 @@ const Projects = () => {
               
               <div className="h-64">
                 {selectedChart === 'bar' && renderBarChart(projectChartData, 'Projects', 'bg-blue-500')}
-                {selectedChart === 'pie' && renderPieChart(projectChartData, 'Projects')}
-                {selectedChart === 'line' && renderLineChart(projectChartData, 'Projects')}
+                {selectedChart === 'pie' && renderPieChart(projectChartData)}
+                {selectedChart === 'line' && renderLineChart(projectChartData)}
               </div>
             </div>
           )}

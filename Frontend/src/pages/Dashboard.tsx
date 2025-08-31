@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from '../../lib/axios';
-import { Clock, Code, FileText, BarChart3, Calendar, TrendingUp, Zap, Crown, Activity, Target, Award } from 'lucide-react';
+import { Clock, Code, FileText, BarChart3, Activity, Target, Award } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
 interface CodingStats {

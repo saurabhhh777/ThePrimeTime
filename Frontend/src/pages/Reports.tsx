@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from "../../lib/axios";
@@ -9,11 +9,9 @@ import {
   FileText, 
   TrendingUp, 
   Activity,
-  Calendar,
   Target,
   Award,
   Zap,
-  Users,
   Folder,
   RefreshCw
 } from 'lucide-react';

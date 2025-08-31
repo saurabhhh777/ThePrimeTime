@@ -161,13 +161,36 @@ export const getUserReports = async (req, res) => {
             orderBy: { timestamp: 'desc' }
         });
 
-        // If no real data exists, return mock data for demonstration
+        // If no real data exists, return empty data structure
         if (codingStats.length === 0) {
-            const mockData = generateMockData(period);
             return res.status(200).json({
                 success: true,
-                data: mockData,
-                message: "Showing demo data. Connect your VS Code extension to see real statistics."
+                data: {
+                    period,
+                    summary: {
+                        totalDuration: 0,
+                        totalLinesChanged: 0,
+                        totalCharactersTyped: 0,
+                        totalSessions: 0,
+                        totalFiles: 0,
+                        averageSessionDuration: 0,
+                        averageLinesPerSession: 0,
+                        averageCharsPerSession: 0
+                    },
+                    languages: {},
+                    dailyActivity: {},
+                    weeklyActivity: {},
+                    hourlyActivity: {},
+                    projects: [],
+                    productiveHours: [],
+                    insights: {
+                        mostUsedLanguage: 'None',
+                        mostProductiveHour: 0,
+                        totalProjects: 0,
+                        averageProjectDuration: 0
+                    }
+                },
+                message: "No coding data available for this period. Connect your VS Code extension to start tracking your coding activity."
             });
         }
 

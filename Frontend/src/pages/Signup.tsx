@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { userAuthStore } from "../../store/userAuthStore.tsx";
+
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Timer, Check, ArrowLeft, Clock } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
@@ -13,7 +13,7 @@ interface FormData {
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { signup } = userAuthStore();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);

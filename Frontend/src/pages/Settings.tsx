@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 import { instance } from "../../lib/axios";
 import { 
-  Settings as SettingsIcon,
   User,
   Bell,
   Shield,
   Palette,
-  Globe,
   Save,
   Eye,
   EyeOff,
   Key,
   Mail,
-  Smartphone,
   Trash2,
   Download,
-  Upload,
   Moon,
   Sun,
   Monitor,
-  ChevronDown,
   Calendar,
   BarChart3
 } from 'lucide-react';
@@ -127,7 +122,7 @@ const Settings = () => {
       setSaving(true);
       const token = localStorage.getItem('token');
       
-      const response = await instance.put("/api/v1/user/settings", {
+      await instance.put("/api/v1/user/settings", {
         username: settings.username,
         profilePicture: settings.profilePicture,
         theme: settings.theme,

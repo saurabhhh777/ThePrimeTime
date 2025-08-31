@@ -474,7 +474,7 @@ export const Signin = async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    console.log(`${user.email}'s user token is :${token}`);
+    console.log(`user token is :${token}`);
     console.log(`User data is ${user}`);
 
     //setting the cookie to the browser for CRUD operations

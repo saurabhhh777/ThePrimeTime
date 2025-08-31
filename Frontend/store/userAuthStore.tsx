@@ -33,6 +33,10 @@ export const userAuthStore = create<AuthStore>((set) => ({
             if (response.data.success && response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 set({ user: response.data.user, isAuthenticated: true, isLogin: true });
+
+                console.log("From state mangement signup:");
+                console.log(response.data);
+
                 return true;
             }
             return false;
