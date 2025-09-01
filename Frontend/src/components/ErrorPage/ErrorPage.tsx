@@ -1,8 +1,28 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, ArrowLeft, Search, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useEffect } from 'react';
 
 const ErrorPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if the URL starts with @ (username pattern)
+    const pathname = location.pathname;
+    console.log('ErrorPage - Checking pathname:', pathname);
+    
+    if (pathname.startsWith('/@')) {
+      const username = pathname.substring(2); // Remove /@
+      console.log('ErrorPage - Detected username:', username);
+      
+      if (username && username.length > 0) {
+        // Redirect to profile with username parameter
+        console.log('ErrorPage - Redirecting to profile with username:', username);
+        navigate(`/profile/${username}`, { replace: true });
+        return;
+      }
+    }
+  }, [location.pathname, navigate]);
 
   return (
     <div className="min-h-screen bg-black font-['Poppins'] relative overflow-hidden">
@@ -40,6 +60,9 @@ const ErrorPage = () => {
             <p className="text-gray-400 text-lg leading-relaxed max-w-md mx-auto">
               The page you're looking for seems to have wandered off into the digital void. 
               Don't worry, we'll help you find your way back!
+            </p>
+            <p className="text-gray-500 text-sm mt-2">
+              Current path: {location.pathname}
             </p>
           </div>
 

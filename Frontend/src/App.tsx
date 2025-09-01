@@ -15,8 +15,20 @@ import Blog from "./pages/Blog";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription"; 
 
+// Custom component to handle @username routes
+const UsernameProfile = () => {
+  const pathname = window.location.pathname;
+  const username = pathname.substring(1); // Remove the leading /
+  
+  console.log('UsernameProfile - Pathname:', pathname);
+  console.log('UsernameProfile - Username:', username);
+  
+  return <Profile />;
+};
 
 const App = () => {
+  console.log('App component rendered');
+  
   return (
     <Router>
       <Routes>
@@ -26,17 +38,18 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/api-docs" element={<ApiDocs />} />
         <Route path="/faq" element={<Faq />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/@:username" element={<Profile />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/reports" element={<Reports />} />
-        <Route path="*" element={<ErrorPage />} />
         <Route path="/invoice" element={<Invoice />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/subscription" element={<Subscription />} />
-        <Route path="/invoice" element={<Invoice />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/user/:username" element={<Profile />} />
+        <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/@:username" element={<Profile />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </Router>
   );
