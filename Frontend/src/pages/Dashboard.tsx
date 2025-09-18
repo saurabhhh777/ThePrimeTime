@@ -216,7 +216,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center font-['Poppins']">
+      <div className="min-h-screen bg-black flex items-center justify-center font-['Poppins']">
         <div className="text-white text-xl flex items-center gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
           Loading your coding analytics...
@@ -226,7 +226,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 font-['Poppins']">
+    <div className="min-h-screen bg-black font-['Poppins']">
       <Vnavbar className="fixed top-0 left-0 h-[calc(100vh-0.5rem)] mt-1 ml-1" />
       <div className="ml-[16.5rem] mr-1">
         <Hnavbar className="mt-1" />
