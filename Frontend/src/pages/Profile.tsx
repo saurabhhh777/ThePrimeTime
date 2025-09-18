@@ -1,11 +1,10 @@
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
 
 const Profile = () => {
   const { username } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
   const [testState, setTestState] = useState('initial');
 

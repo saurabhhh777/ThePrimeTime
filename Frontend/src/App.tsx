@@ -15,17 +15,6 @@ import Blog from "./pages/Blog";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription"; 
 
-// Custom component to handle @username routes
-const UsernameProfile = () => {
-  const pathname = window.location.pathname;
-  const username = pathname.substring(1); // Remove the leading /
-  
-  console.log('UsernameProfile - Pathname:', pathname);
-  console.log('UsernameProfile - Username:', username);
-  
-  return <Profile />;
-};
-
 const App = () => {
   console.log('App component rendered');
   
