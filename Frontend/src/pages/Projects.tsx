@@ -1,4 +1,3 @@
-import ThePrimeTimeLogo from "../components/ThePrimeTimeLogo";
 import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
@@ -566,7 +565,7 @@ const Projects = () => {
                     )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
-                    <ThePrimeTimeLogo className="h-8 w-8 text-white" size="md" />
+                    <img src="/favicon-32x32.png" alt="ThePrimeTime Logo" className="h-8 w-8" />
                   </div>
                 </div>
               </div>

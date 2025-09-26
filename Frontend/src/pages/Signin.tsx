@@ -2,7 +2,6 @@ import { userAuthStore } from "../../store/userAuthStore.tsx";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import ThePrimeTimeLogo from "../components/ThePrimeTimeLogo";
 import toast, { Toaster } from "react-hot-toast";
 import React from "react"; // Added missing import
 
@@ -68,7 +67,7 @@ const Signin = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-              <ThePrimeTimeLogo className="h-8 w-8 text-white" size="md" />
+              <img src="/favicon-32x32.png" alt="ThePrimeTime Logo" className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-white">ThePrimeTime</h1>
           </div>

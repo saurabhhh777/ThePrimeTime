@@ -1,6 +1,5 @@
 import React from 'react'
 import {LogOut} from 'lucide-react';
-import ThePrimeTimeLogo from "../ThePrimeTimeLogo";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import toast from 'react-hot-toast';
 
@@ -32,7 +31,7 @@ const Vnavbar: React.FC<VnavbarProps> = ({ className }) => {
         <div className="space-y-6">
             <h2>
                 <a href="/" className="flex items-center gap-2 group">
-                    <ThePrimeTimeLogo className="text-white group-hover:scale-110 transition-transform duration-200" size="lg" />
+                    <img src="/favicon-32x32.png" alt="ThePrimeTime Logo" className="h-8 w-8 group-hover:scale-110 transition-transform duration-200" />
                     <h2 className="text-white text-xl font-bold group-hover:text-gray-200 transition-colors">ThePrimeTime</h2>
                 </a>
             </h2>
