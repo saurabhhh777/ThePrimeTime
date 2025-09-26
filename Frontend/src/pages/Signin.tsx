@@ -1,7 +1,8 @@
 import { userAuthStore } from "../../store/userAuthStore.tsx";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Timer, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import ThePrimeTimeLogo from "../components/ThePrimeTimeLogo";
 import toast, { Toaster } from "react-hot-toast";
 import React from "react"; // Added missing import
 
@@ -67,7 +68,7 @@ const Signin = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-              <Timer className="h-8 w-8 text-white" />
+              <ThePrimeTimeLogo className="h-8 w-8 text-white" size="md" />
             </div>
             <h1 className="text-3xl font-bold text-white">ThePrimeTime</h1>
           </div>
@@ -78,13 +79,15 @@ const Signin = () => {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-2xl">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-gray-400 text-sm">Sign in to your account</p>
+            <p className="text-gray-400">Sign in to your account</p>
           </div>
 
           <div className="space-y-6">
-            {/* Username/Email Field */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Username or Email</label>
+            {/* Identifier Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {isEmail ? 'Email' : 'Username'}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   {React.createElement(identifierIcon, { className: "h-5 w-5 text-gray-400" })}
@@ -93,39 +96,42 @@ const Signin = () => {
                   type="text"
                   name="identifier"
                   value={formdata.identifier}
-                  placeholder={identifierPlaceholder}
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300"
+                  placeholder={identifierPlaceholder}
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
-              <p className="text-gray-400 text-xs">
-                You can sign in with your username or email address
-              </p>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Password</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formdata.password}
-                  placeholder="Enter your password"
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300"
+                  placeholder="Enter your password"
+                  className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-white transition-colors" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-white transition-colors" />
+                  )}
                 </button>
               </div>
             </div>
@@ -134,38 +140,31 @@ const Signin = () => {
             <button
               onClick={handleSignin}
               disabled={loading}
-              className="w-full py-3 px-4 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
-                  Signing In...
-                </>
-              ) : (
-                "Sign In"
-              )}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
 
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-400">Or continue with</span>
+              </div>
+            </div>
+
             {/* Sign Up Link */}
-            <div className="text-center pt-4 border-t border-white/10">
-              <p className="text-gray-400 text-sm">
-                Don't have an account?{" "}
-                <Link 
-                  to="/signup" 
-                  className="text-white hover:text-gray-200 font-medium transition-colors"
-                >
+            <div className="text-center">
+              <p className="text-gray-400">
+                Don't have an account?{ }
+                <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
                   Sign up
                 </Link>
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-gray-500 text-xs">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
-          </p>
         </div>
       </div>
     </div>

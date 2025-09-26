@@ -1,3 +1,4 @@
+import ThePrimeTimeLogo from "../components/ThePrimeTimeLogo";
 import { useState, useEffect } from 'react';
 import Hnavbar from "../components/NavbarPage/Hnavbar";
 import Vnavbar from "../components/NavbarPage/Vnavbar";
@@ -14,7 +15,7 @@ import {
   Eye,
   Activity,
   Zap,
-  Timer,
+  
   PieChart,
   BarChart,
   LineChart
@@ -565,7 +566,7 @@ const Projects = () => {
                     )}
                   </div>
                   <div className="p-3 bg-white/20 rounded-xl">
-                    <Timer className="h-8 w-8 text-white" />
+                    <ThePrimeTimeLogo className="h-8 w-8 text-white" size="md" />
                   </div>
                 </div>
               </div>
